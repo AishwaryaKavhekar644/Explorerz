@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kinetic ERP — Settings</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            syne: ['Syne', 'sans-serif'],
+            fig:  ['Figtree', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Figtree:wght@300;400;500;600;700&display=swap');
+
+    body { font-family: 'Figtree', sans-serif; background: #080d18; color: #e2e8f0; }
+
+    .card {
+      background: #111827;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 18px;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+    }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 11px;
+      padding: 9px 12px; border-radius: 10px;
+      font-size: 13.5px; font-weight: 500; color: #64748b;
+      transition: all .25s ease;
+    }
+    .nav-item:hover  { background: rgba(79,142,247,.12); color: #93c5fd; }
+    .nav-item.active { background: rgba(79,142,247,.18); color: #4f8ef7; border-left: 3px solid #4f8ef7; padding-left: 9px; }
+
+    .toggle-switch {
+      position: relative; display: inline-block; width: 48px; height: 26px;
+    }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #334155; transition: .4s; border-radius: 9999px;
+    }
+    .slider:before {
+      position: absolute; content: ""; height: 20px; width: 20px;
+      left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;
+    }
+    input:checked + .slider { background-color: #4f8ef7; }
+    input:checked + .slider:before { transform: translateX(22px); }
+  </style>
+</head>
+<body class="flex overflow-hidden" style="height:100vh;">
+
+<!-- SIDEBAR -->
+<aside class="w-[210px] bg-[#0b1120] border-r border-white/10 flex flex-col h-full overflow-y-auto flex-shrink-0">
+  <div class="px-5 pt-5 pb-4 border-b border-white/5">
+    <span class="font-syne font-bold text-[15px] tracking-wide">
+      <span style="color:#4f8ef7">Kinetic</span>
+      <span class="text-white"> ERP</span>
+    </span>
+  </div>
+
+  <div class="mx-3 mt-4 p-3 rounded-xl flex items-center gap-3" style="background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07);">
+    <div class="w-9 h-9 rounded-xl flex items-center justify-center font-syne font-bold text-sm text-white" style="background: linear-gradient(135deg,#4f8ef7,#6366f1);">AU</div>
+    <div>
+      <div class="text-white text-sm font-semibold">Admin User</div>
+      <div class="text-[11px] text-slate-500">Multi-Branch</div>
+    </div>
+  </div>
+
+  <nav class="flex-1 px-3 mt-6 space-y-0.5">
+    <a href="index.html" class="nav-item"><span>🏠</span> Dashboard</a>
+    <a href="inventory.html" class="nav-item"><span>📦</span> Inventory</a>
+    <a href="orders.html" class="nav-item"><span>🛒</span> Orders</a>
+    <a href="analytics.html" class="nav-item"><span>📊</span> Analytics</a>
+    <a href="alerts.html" class="nav-item"><span>🛎️</span> Alerts</a>
+    <a href="ai-assistant.html" class="nav-item"><span>🤖</span> AI Assistant</a>
+  </nav>
+
+  <div class="px-3 pb-6 mt-auto border-t border-white/10 space-y-1">
+    <a href="#" class="nav-item active"><span>⚙️</span> Settings</a>
+    <a href="#" class="nav-item"><span>↪️</span> Logout</a>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<div class="flex-1 flex flex-col overflow-hidden">
+
+  <header class="h-14 border-b border-white/5 bg-[#0b1120] flex items-center px-6">
+    <h1 class="font-syne font-bold text-xl">System Control Center</h1>
+    <p class="ml-4 text-xs text-slate-400">Orchestrate your global ERP ecosystem</p>
+  </header>
+
+  <main class="flex-1 overflow-y-auto p-8">
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+      <!-- Left Column -->
+      <div class="lg:col-span-5 space-y-8">
+
+        <!-- Profile Section (Only Photo Removed) -->
+        <div class="card p-8 flex gap-6">
+          <div class="flex-1">
+            <h2 class="text-2xl font-semibold">Alexander Vance</h2>
+            <p class="text-slate-400">Director of Operations</p>
+            <p class="mt-4 text-sm">a.vance@kinetic-intel.com</p>
+            <p class="text-sm text-slate-400">Global Supply Chain</p>
+            
+            <button onclick="editProfile()" 
+                    class="mt-6 px-6 py-2.5 text-sm rounded-2xl border border-white/20 hover:bg-white/5">
+              Edit Full Profile
+            </button>
+          </div>
+        </div>
+
+        <!-- Security & Access -->
+        <div class="card p-8">
+          <h3 class="font-semibold mb-6">Security & Access</h3>
+          
+          <div class="flex justify-between items-center py-4 border-b border-white/10">
+            <div>
+              <p class="font-medium">Multi-factor Authentication</p>
+              <p class="text-xs text-slate-400">Secure login with SMS/App</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="py-4 border-b border-white/10 flex justify-between items-center">
+            <div>Change Password</div>
+            <button onclick="changePassword()" class="text-blue-400 text-sm">Update →</button>
+          </div>
+
+          <div class="py-4 flex justify-between items-center">
+            <div>Managed Logged Sessions</div>
+            <button onclick="viewSessions()" class="text-blue-400 text-sm">View All</button>
+          </div>
+
+          <!-- Language Selector -->
+          <div class="pt-4">
+            <p class="font-medium mb-3">Preferred Language</p>
+            <select id="languageSelect" onchange="changeLanguage()" 
+                    class="w-full bg-[#1a2540] border border-white/10 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-[#4f8ef7]">
+              <option value="en">English</option>
+              <option value="hi">हिंदी (Hindi)</option>
+              <option value="mr">मराठी (Marathi)</option>
+              <option value="fr">Français (French)</option>
+              <option value="es">Español (Spanish)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column - Branch Configuration -->
+      <div class="lg:col-span-7 card p-8">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="font-semibold">Branch Configuration</h3>
+          <button onclick="addBranch()" class="px-5 py-2 text-sm rounded-2xl bg-blue-600 hover:bg-blue-500">+ Add Branch</button>
+        </div>
+
+        <div class="space-y-4">
+          <div class="bg-[#1a2540] p-5 rounded-2xl flex items-center gap-4">
+            <div class="text-3xl">🏢</div>
+            <div class="flex-1">
+              <div class="flex items-center gap-2">
+                <span class="font-medium">London East Hub</span>
+                <span class="text-xs bg-emerald-500/20 text-emerald-400 px-3 py-0.5 rounded-full">PRIMARY</span>
+              </div>
+              <p class="text-xs text-slate-400">Unit 4, Blackwall Way, London, UK</p>
+            </div>
+            <div class="text-right">
+              <div class="text-emerald-400 text-sm">94% Capacity</div>
+            </div>
+          </div>
+
+          <div class="bg-[#1a2540] p-5 rounded-2xl flex items-center gap-4">
+            <div class="text-3xl">🏭</div>
+            <div class="flex-1">
+              <span class="font-medium">Berlin Tech Annex</span>
+              <p class="text-xs text-slate-400">Tiergartenstraße 17, Berlin, DE</p>
+            </div>
+            <div class="text-right">
+              <div class="text-amber-400 text-sm">72% Capacity</div>
+            </div>
+          </div>
+
+          <div class="bg-[#1a2540] p-5 rounded-2xl flex items-center gap-4">
+            <div class="text-3xl">🚢</div>
+            <div class="flex-1">
+              <div class="flex items-center gap-2">
+                <span class="font-medium">Singapore Port Node</span>
+                <span class="text-xs bg-red-500/20 text-red-400 px-3 py-0.5 rounded-full">WARNING</span>
+              </div>
+              <p class="text-xs text-slate-400">10 Pasir Panjang Rd, Singapore</p>
+            </div>
+            <div class="text-right text-red-400 text-sm">Offline</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Action Buttons -->
+    <div class="flex justify-end gap-4 mt-8">
+      <button onclick="resetDefaults()" class="px-8 py-3 rounded-2xl border border-white/20 hover:bg-white/5">Reset Defaults</button>
+      <button onclick="discardChanges()" class="px-8 py-3 rounded-2xl border border-white/20 hover:bg-white/5">Discard Changes</button>
+      <button onclick="saveChanges()" class="px-8 py-3 rounded-2xl text-white" style="background: linear-gradient(135deg, #4f8ef7, #6366f1);">Save Changes</button>
+    </div>
+  </main>
+</div>
+
+<script>
+function editProfile() { alert("Opening full profile editor..."); }
+function changePassword() { alert("Password change flow started..."); }
+function viewSessions() { alert("Showing active logged sessions..."); }
+function addBranch() { alert("Adding new branch..."); }
+function resetDefaults() { if(confirm("Reset all settings?")) alert("Settings reset to default."); }
+function discardChanges() { if(confirm("Discard changes?")) alert("All changes discarded."); }
+function saveChanges() { alert("✅ All settings saved successfully!"); }
+
+function changeLanguage() {
+  const lang = document.getElementById('languageSelect').value;
+  const names = {
+    en: "English",
+    hi: "हिंदी (Hindi)",
+    mr: "मराठी (Marathi)",
+    fr: "Français (French)",
+    es: "Español (Spanish)"
+  };
+  alert("🌐 Language changed to: " + names[lang]);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('%c✅ Settings Page Loaded!', 'color:#4f8ef7; font-weight:600');
+});
+</script>
+</body>
+</html>

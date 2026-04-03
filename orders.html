@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kinetic ERP — Order Management</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Syne + Figtree -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            d900: '#080d18',
+            d800: '#0b1120',
+            d700: '#0f1829',
+            d600: '#131d2e',
+            d500: '#1a2540',
+            acc:  '#4f8ef7',
+            accp: '#a78bfa',
+            acct: '#22d3ee',
+          },
+          fontFamily: {
+            syne: ['Syne', 'sans-serif'],
+            fig:  ['Figtree', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Figtree:wght@300;400;500;600;700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body { font-family: 'Figtree', sans-serif; background: #080d18; color: #e2e8f0; }
+
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 4px; }
+
+    .card {
+      background: #111827;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 18px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    #sidebar {
+      background: #0b1120;
+      border-right: 1px solid rgba(255,255,255,0.06);
+      width: 210px;
+      min-width: 210px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 9px 12px;
+      border-radius: 10px;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: #64748b;
+      cursor: pointer;
+      transition: all .25s ease;
+    }
+    .nav-item:hover  { background: rgba(79,142,247,.12); color: #93c5fd; }
+    .nav-item.active { background: rgba(79,142,247,.18); color: #4f8ef7; border-left: 3px solid #4f8ef7; padding-left: 9px; }
+
+    .trow { transition: all .3s ease; }
+    .trow:hover { background: rgba(79,142,247,.08); transform: translateX(6px); }
+
+    .status-processing { background: rgba(34,197,94,.15); color: #4ade80; border: 1px solid rgba(34,197,94,.4); }
+    .status-pending    { background: rgba(234,179,8,.15); color: #fbbf24; border: 1px solid rgba(234,179,8,.4); }
+    .status-cancelled  { background: rgba(239,68,68,.15);  color: #f87171; border: 1px solid rgba(239,68,68,.4); }
+
+    /* Animations */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(25px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fu { animation: fadeUp 0.7s cubic-bezier(0.4, 0, 0.2, 1) both; }
+    .d1 { animation-delay: 0.08s; }
+    .d2 { animation-delay: 0.18s; }
+    .d3 { animation-delay: 0.28s; }
+    .d4 { animation-delay: 0.38s; }
+
+    .btn-hover {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-hover:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 30px -10px rgba(79, 142, 247, 0.4);
+    }
+
+    .branch-btn {
+      transition: all 0.3s ease;
+    }
+    .branch-btn.active {
+      border-color: #4f8ef7;
+      background: rgba(79,142,247,0.1);
+      color: white;
+    }
+  </style>
+</head>
+<body class="flex overflow-hidden" style="height:100vh;">
+
+<!-- SIDEBAR -->
+<aside id="sidebar" class="flex flex-col h-full overflow-y-auto flex-shrink-0">
+  <div class="px-5 pt-5 pb-4 border-b border-white/5">
+    <span class="font-syne font-bold text-[15px] tracking-wide">
+      <span style="color:#4f8ef7">Kinetic</span>
+      <span class="text-white"> Intelligence</span>
+    </span>
+    <p class="text-[10px] text-slate-500 mt-0.5">MULTI-BRANCH</p>
+  </div>
+
+  <div class="mx-3 mt-4 p-3 rounded-xl flex items-center gap-3" 
+       style="background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07);">
+    <div class="w-9 h-9 rounded-xl flex items-center justify-center font-syne font-bold text-sm text-white"
+         style="background: linear-gradient(135deg,#4f8ef7,#6366f1);">AU</div>
+    <div>
+      <div class="text-white text-sm font-semibold">Admin User</div>
+      <div class="text-[11px] text-slate-500">Multi-Branch</div>
+    </div>
+  </div>
+
+  <nav class="flex-1 px-3 mt-6 space-y-0.5">
+    <a href="index.html" class="nav-item"><span>🏠</span> Dashboard</a>
+    <a href="inventory.html" class="nav-item"><span>📦</span> Inventory</a>
+    <a href="orders.html" class="nav-item active"><span>🛒</span> Orders</a>
+    <a href="analytics.html" class="nav-item"><span>📊</span> Analytics</a>
+    <a href="alerts.html" class="nav-item"><span>🛎️</span> Alerts</a>
+    <a href="ai-assistant.html" class="nav-item"><span>🤖</span> AI Assistant</a>
+  </nav>
+
+  <div class="px-3 py-4">
+    <button onclick="createNewOrder()" 
+            class="w-full py-3 rounded-2xl text-white font-semibold flex items-center justify-center gap-2 btn-hover"
+            style="background: linear-gradient(135deg, #4f8ef7, #6366f1);">
+      <span class="text-lg">+</span> Create Order
+    </button>
+  </div>
+
+  <div class="px-3 pb-6 space-y-1">
+    <a href="settings.html" class="nav-item"><span>⚙️</span> Settings</a>
+    <a href="#" class="nav-item"><span>↪️</span> Logout</a>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<div class="flex-1 flex flex-col overflow-hidden">
+
+  <!-- Top Bar -->
+  <header class="h-14 border-b border-white/5 flex items-center px-6 bg-[#0b1120] flex-shrink-0">
+    <div class="flex-1 flex items-center gap-3">
+      <h1 class="font-syne font-bold text-xl text-white">Order Management</h1>
+      <p class="text-xs text-slate-400 hidden sm:block">Coordinate logistics and fulfillments across global branches.</p>
+    </div>
+
+    <div class="flex items-center gap-4">
+      <div class="relative w-80">
+        <input type="text" id="searchInput" placeholder="Search orders, SKU, or branches..." 
+               class="w-full bg-[#1a2540] border border-white/10 rounded-2xl py-2.5 pl-10 text-sm focus:outline-none focus:border-[#4f8ef7]"
+               onkeyup="filterTable()">
+        <span class="absolute left-4 top-3 text-slate-500">🔍</span>
+      </div>
+      <button onclick="newOrder()" 
+              class="px-6 py-2.5 rounded-2xl text-sm font-semibold text-white flex items-center gap-2 btn-hover"
+              style="background: linear-gradient(135deg, #4f8ef7, #6366f1);">
+        + New Order
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 overflow-y-auto p-6 space-y-6">
+
+    <!-- Centered Order Configuration Card - Same size as before -->
+    <div class="flex justify-center">
+      <div class="w-full max-w-3xl card p-6 fu d1">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="font-syne font-semibold text-lg flex items-center gap-2">
+            <span>📦</span> Order Configuration
+          </h2>
+          <div class="text-xs text-slate-400">Live • Updated moments ago</div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div>
+            <label class="block text-xs font-semibold tracking-widest text-slate-500 mb-2">SELECT PRODUCT</label>
+            <select id="productSelect" class="w-full bg-[#1a2540] border border-white/10 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-[#4f8ef7]">
+              <option>Quantum Core Processor X1</option>
+              <option>Neural Link Interface</option>
+              <option>Nebula Graphics Module</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold tracking-widest text-slate-500 mb-2">QUANTITY</label>
+            <input type="number" value="150" class="w-full bg-[#1a2540] border border-white/10 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-[#4f8ef7]">
+          </div>
+        </div>
+
+        <div class="mb-8">
+          <label class="block text-xs font-semibold tracking-widest text-slate-500 mb-3">TARGET BRANCH</label>
+          <div class="flex flex-wrap gap-3">
+            <button onclick="selectBranch(this)" class="branch-btn active px-6 py-3 rounded-2xl border border-white/20 text-sm">Branch A <span class="text-xs text-slate-400">(New York)</span></button>
+            <button onclick="selectBranch(this)" class="branch-btn px-6 py-3 rounded-2xl border border-white/20 text-sm">Branch B <span class="text-xs text-slate-400">(London)</span></button>
+            <button onclick="selectBranch(this)" class="branch-btn px-6 py-3 rounded-2xl border border-white/20 text-sm">Branch C <span class="text-xs text-slate-400">(Tokyo)</span></button>
+          </div>
+        </div>
+
+        <!-- Smart Logistics Box -->
+        <div class="card p-6 mb-8" style="background:#1a2540; border-color:#22c55e30;">
+          <div class="flex gap-4">
+            <div class="text-3xl">💡</div>
+            <div class="flex-1">
+              <div class="font-semibold text-emerald-400">Smart Logistics Optimization</div>
+              <p class="text-slate-300 text-sm mt-1 leading-relaxed">
+                Stock low at Branch A. Branch B has surplus (+50). 
+                Accept transfer suggestion to avoid delay?
+              </p>
+            </div>
+          </div>
+          <div class="flex gap-3 mt-6">
+            <button onclick="acceptTransfer()" 
+                    class="flex-1 py-3.5 rounded-2xl text-white font-semibold btn-hover"
+                    style="background: linear-gradient(135deg, #22c55e, #4ade80); box-shadow: 0 0 20px rgba(74, 222, 128, 0.3);">
+              Accept Transfer
+            </button>
+            <button onclick="declineTransfer()" 
+                    class="flex-1 py-3.5 rounded-2xl border border-white/20 text-sm font-medium hover:bg-white/5 transition-all">
+              Decline
+            </button>
+          </div>
+        </div>
+
+        <button onclick="initializeWorkflow()" 
+                class="w-full py-4 rounded-2xl text-white font-semibold text-base btn-hover"
+                style="background: linear-gradient(135deg, #4f8ef7, #6366f1);">
+          Initialize Fulfillment Workflow
+        </button>
+      </div>
+    </div>
+
+    <!-- Recent Transaction Ledger -->
+    <div class="card p-6 fu d4">
+      <div class="flex justify-between mb-6">
+        <h2 class="font-syne font-semibold text-lg">Recent Transaction Ledger</h2>
+        <span class="text-xs text-slate-400">Showing 1-3 of 42 entries</span>
+      </div>
+
+      <table class="w-full">
+        <thead>
+          <tr class="text-xs font-semibold text-slate-500 border-b border-white/10">
+            <th class="text-left py-4 font-medium">PRODUCT ENTITY</th>
+            <th class="text-left py-4 font-medium">ORDER ID</th>
+            <th class="text-left py-4 font-medium">QUANTITY</th>
+            <th class="text-left py-4 font-medium">ORIGIN BRANCH</th>
+            <th class="text-left py-4 font-medium">STATUS</th>
+            <th class="text-right py-4 font-medium">ACTION</th>
+          </tr>
+        </thead>
+        <tbody id="ledgerTable" class="text-sm"></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<script>
+// Sample Data
+const ledgerData = [
+  { product: "Quantum Core X1", id: "#ORD-90231", qty: "1,200", branch: "BRANCH A", status: "processing" },
+  { product: "Neural Link Interface", id: "#ORD-90234", qty: "450", branch: "BRANCH C", status: "pending" },
+  { product: "Nebula Graphics Module", id: "#ORD-89912", qty: "85", branch: "BRANCH B", status: "cancelled" }
+];
+
+function renderLedger() {
+  const tbody = document.getElementById('ledgerTable');
+  tbody.innerHTML = ledgerData.map(item => {
+    let statusHTML = '';
+    if (item.status === 'processing') statusHTML = `<span class="status-processing text-xs px-4 py-1 rounded-full">PROCESSING</span>`;
+    else if (item.status === 'pending') statusHTML = `<span class="status-pending text-xs px-4 py-1 rounded-full">PENDING APPROVAL</span>`;
+    else statusHTML = `<span class="status-cancelled text-xs px-4 py-1 rounded-full">CANCELLED</span>`;
+
+    return `
+      <tr class="trow border-b border-white/10 last:border-none">
+        <td class="py-5 font-medium">${item.product}</td>
+        <td class="py-5 font-mono text-[#4f8ef7]">${item.id}</td>
+        <td class="py-5">${item.qty}</td>
+        <td class="py-5 text-slate-300">${item.branch}</td>
+        <td class="py-5">${statusHTML}</td>
+        <td class="py-5 text-right">
+          <button onclick="viewTransaction('${item.id}')" class="text-xs px-5 py-2 hover:bg-white/10 rounded-xl transition-colors">•••</button>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+function selectBranch(el) {
+  document.querySelectorAll('.branch-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function acceptTransfer() {
+  alert("✅ Transfer Accepted!\nStock movement from Branch B → A has been initiated.");
+}
+
+function declineTransfer() {
+  alert("Transfer suggestion declined.");
+}
+
+function initializeWorkflow() {
+  alert("🚀 Fulfillment Workflow Initialized Successfully!");
+}
+
+function newOrder() {
+  alert("🛒 Creating new order...");
+}
+
+function viewTransaction(id) {
+  alert(`📋 Opening details for ${id}`);
+}
+
+function filterTable() {
+  console.log("Searching orders...");
+}
+
+function createNewOrder() {
+  alert("Creating new order from sidebar...");
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  renderLedger();
+  console.log('%c✅ Order Management Page Loaded with Enhanced Animations!', 'color:#4f8ef7; font-weight:600');
+});
+</script>
+</body>
+</html>

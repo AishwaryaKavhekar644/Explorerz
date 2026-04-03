@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kinetic ERP — AI Assistant</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            d900: '#080d18',
+            d800: '#0b1120',
+            d700: '#0f1829',
+            d600: '#131d2e',
+            d500: '#1a2540',
+            acc:  '#4f8ef7',
+            accp: '#a78bfa',
+            acct: '#22d3ee',
+          },
+          fontFamily: {
+            syne: ['Syne', 'sans-serif'],
+            fig:  ['Figtree', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Figtree:wght@300;400;500;600;700&display=swap');
+
+    body { font-family: 'Figtree', sans-serif; background: #080d18; color: #e2e8f0; }
+    
+    .card {
+      background: #111827;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 18px;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5); }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 11px;
+      padding: 9px 12px; border-radius: 10px;
+      font-size: 13.5px; font-weight: 500; color: #64748b;
+      transition: all .25s ease;
+    }
+    .nav-item:hover { background: rgba(79,142,247,.12); color: #93c5fd; }
+    .nav-item.active { background: rgba(79,142,247,.18); color: #4f8ef7; border-left: 3px solid #4f8ef7; padding-left: 9px; }
+
+    .message {
+      animation: fadeIn 0.4s ease forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .ai-float {
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+  </style>
+</head>
+<body class="flex overflow-hidden" style="height:100vh;">
+
+<!-- SIDEBAR -->
+<aside id="sidebar" class="flex flex-col h-full overflow-y-auto flex-shrink-0 w-[210px] bg-[#0b1120] border-r border-white/10">
+  <div class="px-5 pt-5 pb-4 border-b border-white/5">
+    <span class="font-syne font-bold text-[15px] tracking-wide">
+      <span style="color:#4f8ef7">Kinetic</span>
+      <span class="text-white"> ERP</span>
+    </span>
+  </div>
+
+  <div class="mx-3 mt-4 p-3 rounded-xl flex items-center gap-3" style="background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07);">
+    <div class="w-9 h-9 rounded-xl flex items-center justify-center font-syne font-bold text-sm text-white bg-gradient-to-br from-indigo-500 to-violet-500">AU</div>
+    <div>
+      <div class="text-white text-sm font-semibold">Admin User</div>
+      <div class="text-[11px] text-slate-500">Multi-Branch</div>
+    </div>
+  </div>
+
+  <nav class="flex-1 px-3 mt-6 space-y-0.5">
+    <a href="index.html" class="nav-item"><span>🏠</span> Dashboard</a>
+    <a href="inventory.html" class="nav-item"><span>📦</span> Inventory</a>
+    <a href="orders.html" class="nav-item"><span>🛒</span> Orders</a>
+    <a href="analytics.html" class="nav-item"><span>📊</span> Analytics</a>
+    <a href="alerts.html" class="nav-item"><span>🛎️</span> Alerts</a>
+    <a href="#" class="nav-item active"><span>🤖</span> AI Assistant</a>
+
+  </nav>
+
+  <div class="px-3 py-4">
+    <button onclick="createOrder()" class="w-full py-3 rounded-2xl text-white font-semibold flex items-center justify-center gap-2" 
+            style="background: linear-gradient(135deg, #4f8ef7, #6366f1);">+ Create Order</button>
+  </div>
+
+  <div class="px-3 pb-6 space-y-1">
+    <a href="settings.html" class="nav-item"><span>⚙️</span> Settings</a>
+    <a href="#" class="nav-item"><span>↪️</span> Logout</a>
+  </div>
+</aside>
+
+<!-- MAIN AI ASSISTANT -->
+<div class="flex-1 flex flex-col overflow-hidden">
+
+  <!-- Top Bar -->
+  <header class="h-14 border-b border-white/5 bg-[#0b1120] flex items-center px-6 flex-shrink-0">
+    <div class="flex-1 flex items-center gap-3">
+      <h1 class="font-syne font-bold text-xl">AI Assistant</h1>
+      <div class="flex items-center gap-2 text-emerald-400 text-xs font-medium">
+        <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+        NEURAL ENGINE ONLINE
+      </div>
+    </div>
+    <div class="flex items-center gap-4">
+      <button class="text-slate-400 hover:text-white"><i class="fa-solid fa-bell"></i></button>
+      <button class="text-slate-400 hover:text-white"><i class="fa-solid fa-gear"></i></button>
+      <div class="w-8 h-8 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white text-sm">AU</div>
+    </div>
+  </header>
+
+  <!-- Chat Area -->
+  <div class="flex-1 overflow-y-auto p-6 space-y-6" id="chatContainer">
+    <!-- Welcome Message -->
+    <div class="max-w-2xl mx-auto text-center fu">
+      <div class="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-violet-500 to-indigo-500 rounded-2xl flex items-center justify-center text-3xl">✨</div>
+      <h2 class="text-2xl font-semibold text-white">Good afternoon, Alex.</h2>
+      <p class="text-slate-400 mt-2">I've analyzed today's supply chain telemetry.<br>How can I optimize your operations today?</p>
+    </div>
+
+    <!-- Example AI Response -->
+    <div class="max-w-2xl mx-auto message">
+      <div class="bg-[#1a2540] rounded-3xl p-5">
+        <div class="flex gap-3">
+          <div class="w-7 h-7 rounded-xl bg-violet-500/20 flex items-center justify-center text-violet-400 text-sm">AI</div>
+          <div class="flex-1">
+            <p class="text-sm">Analyzing branch inventory... I've identified critical shortages in <strong>Branch A</strong>.</p>
+            
+            <div class="mt-4 space-y-3">
+              <div class="flex justify-between bg-[#111827] p-3 rounded-2xl">
+                <div>
+                  <span class="text-red-400">▲</span> Copper Wire (12AWG)
+                </div>
+                <div class="text-red-400 font-medium">12 Units Left</div>
+              </div>
+              <div class="flex justify-between bg-[#111827] p-3 rounded-2xl">
+                <div>
+                  <span class="text-red-400">▲</span> 10A Breakers
+                </div>
+                <div class="text-red-400 font-medium">5 Units Left</div>
+              </div>
+            </div>
+
+            <p class="mt-4 text-sm text-slate-300">Would you like me to draft a restock order for Branch A based on your 30-day velocity?</p>
+            
+            <div class="flex gap-3 mt-6">
+              <button onclick="draftRestock()" class="flex-1 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium transition-colors">Draft Restock Order</button>
+              <button onclick="compareBranches()" class="flex-1 py-3 rounded-2xl border border-white/20 hover:bg-white/5 text-sm font-medium transition-colors">Compare Branches</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="text-xs text-slate-500 text-center mt-2">AI Assistant • Just now</div>
+    </div>
+  </div>
+
+  <!-- Input Area -->
+  <div class="p-6 border-t border-white/10 bg-[#0b1120]">
+    <div class="max-w-3xl mx-auto">
+      <div class="relative">
+        <input id="userInput" type="text" 
+               class="w-full bg-[#1a2540] border border-white/10 rounded-3xl py-4 pl-6 pr-24 text-sm focus:outline-none focus:border-[#4f8ef7]"
+               placeholder="Ask Kinetic AI anything..." 
+               onkeydown="if(event.key === 'Enter') sendMessage()">
+        
+        <div class="absolute right-3 top-1/2 -translate-y-1/2 flex gap-2">
+          <button onclick="startVoiceInput()" class="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-white rounded-2xl hover:bg-white/10 transition-colors">
+            🎤
+          </button>
+          <button onclick="sendMessage()" 
+                  class="w-10 h-10 flex items-center justify-center bg-[#4f8ef7] hover:bg-[#6366f1] rounded-2xl text-white transition-colors">
+            →
+          </button>
+        </div>
+      </div>
+      <p class="text-center text-[10px] text-slate-500 mt-3">Press <span class="font-mono bg-white/10 px-1 rounded">⌘K</span> to open command palette</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// Send user message
+function sendMessage() {
+  const input = document.getElementById('userInput');
+  const message = input.value.trim();
+  if (!message) return;
+
+  const chatContainer = document.getElementById('chatContainer');
+
+  // Add user message
+  const userMsg = document.createElement('div');
+  userMsg.className = 'max-w-2xl ml-auto message';
+  userMsg.innerHTML = `
+    <div class="bg-[#4f8ef7] text-white rounded-3xl rounded-tr-none px-5 py-3 max-w-xs">
+      ${message}
+    </div>
+  `;
+  chatContainer.appendChild(userMsg);
+  chatContainer.scrollTop = chatContainer.scrollHeight;
+
+  input.value = '';
+
+  // Simulate AI thinking + response
+  setTimeout(() => {
+    const aiResponse = document.createElement('div');
+    aiResponse.className = 'max-w-2xl message';
+    aiResponse.innerHTML = `
+      <div class="bg-[#1a2540] rounded-3xl p-5">
+        <div class="flex gap-3">
+          <div class="w-7 h-7 rounded-xl bg-violet-500/20 flex items-center justify-center text-violet-400 text-sm">AI</div>
+          <div class="flex-1 text-sm">
+            Understood. I'm checking real-time inventory across all branches.<br><br>
+            Would you like me to generate a full restock plan or focus on Branch A only?
+          </div>
+        </div>
+      </div>
+    `;
+    chatContainer.appendChild(aiResponse);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }, 1200);
+}
+
+// Voice Input
+function startVoiceInput() {
+  if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+    alert("Voice input not supported in your browser.");
+    return;
+  }
+
+  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.lang = 'en-IN';
+  
+  recognition.onresult = (event) => {
+    document.getElementById('userInput').value = event.results[0][0].transcript;
+    sendMessage();
+  };
+  
+  recognition.start();
+}
+
+// Quick Actions
+function draftRestock() {
+  alert("📋 Drafting restock order for Branch A...\n\n(Connected to n8n workflow - ready for integration)");
+}
+
+function compareBranches() {
+  alert("📊 Comparing stock levels across all branches...");
+}
+
+function createOrder() {
+  alert("🛒 Opening Create Order form...");
+}
+
+function toggleAI() {
+  alert("AI Assistant is already active.");
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('%c✅ AI Assistant Page Loaded Successfully!', 'color:#a78bfa; font-weight:600');
+});
+</script>
+</body>
+</html>

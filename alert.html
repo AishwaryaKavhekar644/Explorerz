@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kinetic ERP — Alerts</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Syne + Figtree -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            d900: '#080d18',
+            d800: '#0b1120',
+            d700: '#0f1829',
+            d600: '#131d2e',
+            d500: '#1a2540',
+            acc:  '#4f8ef7',
+            accp: '#a78bfa',
+            acct: '#22d3ee',
+          },
+          fontFamily: {
+            syne: ['Syne', 'sans-serif'],
+            fig:  ['Figtree', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Figtree:wght@300;400;500;600;700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body { font-family: 'Figtree', sans-serif; background: #080d18; color: #e2e8f0; }
+
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 4px; }
+
+    .card {
+      background: #111827;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 18px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    #sidebar {
+      background: #0b1120;
+      border-right: 1px solid rgba(255,255,255,0.06);
+      width: 210px;
+      min-width: 210px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 9px 12px;
+      border-radius: 10px;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: #64748b;
+      cursor: pointer;
+      transition: all .25s ease;
+    }
+    .nav-item:hover  { background: rgba(79,142,247,.12); color: #93c5fd; }
+    .nav-item.active { background: rgba(79,142,247,.18); color: #4f8ef7; border-left: 3px solid #4f8ef7; padding-left: 9px; }
+
+    .alert-card {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .alert-card:hover {
+      transform: translateX(8px);
+      box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.4);
+    }
+
+    .btn-hover {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-hover:hover {
+      transform: translateY(-2px);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(25px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fu { animation: fadeUp 0.7s cubic-bezier(0.4, 0, 0.2, 1) both; }
+    .d1 { animation-delay: 0.08s; }
+    .d2 { animation-delay: 0.18s; }
+    .d3 { animation-delay: 0.28s; }
+    .d4 { animation-delay: 0.38s; }
+
+    .ai-float {
+      animation: float 3.2s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+  </style>
+</head>
+<body class="flex overflow-hidden" style="height:100vh;">
+
+<!-- SIDEBAR -->
+<aside id="sidebar" class="flex flex-col h-full overflow-y-auto flex-shrink-0">
+  <div class="px-5 pt-5 pb-4 border-b border-white/5">
+    <span class="font-syne font-bold text-[15px] tracking-wide">
+      <span style="color:#4f8ef7">Kinetic</span>
+      <span class="text-white"> ERP</span>
+    </span>
+    <p class="text-[10px] text-slate-500 mt-0.5">MULTI-BRANCH</p>
+  </div>
+
+  <div class="mx-3 mt-4 p-3 rounded-xl flex items-center gap-3" 
+       style="background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07);">
+    <div class="w-9 h-9 rounded-xl flex items-center justify-center font-syne font-bold text-sm text-white"
+         style="background: linear-gradient(135deg,#4f8ef7,#6366f1);">AU</div>
+    <div>
+      <div class="text-white text-sm font-semibold">Admin User</div>
+      <div class="text-[11px] text-slate-500">Multi-Branch</div>
+    </div>
+  </div>
+
+  <nav class="flex-1 px-3 mt-6 space-y-0.5">
+    <a href="index.html" class="nav-item"><span>🏠</span> Dashboard</a>
+    <a href="inventory.html" class="nav-item"><span>📦</span> Inventory</a>
+    <a href="orders.html" class="nav-item"><span>🛒</span> Orders</a>
+    <a href="analytics.html" class="nav-item"><span>📊</span> Analytics</a>
+    <a href="alerts.html" class="nav-item active"><span>🛎️</span> Alerts</a>
+    <a href="ai-assistant.html" class="nav-item"><span>🤖</span> AI Assistant</a>
+  </nav>
+
+  <div class="px-3 py-4">
+    <button onclick="createOrder()" 
+            class="w-full py-3 rounded-2xl text-white font-semibold flex items-center justify-center gap-2 btn-hover"
+            style="background: linear-gradient(135deg, #4f8ef7, #6366f1);">
+      <span class="text-lg">+</span> Create Order
+    </button>
+  </div>
+
+  <div class="px-3 pb-6 space-y-1">
+    <a href="settings.html" class="nav-item"><span>⚙️</span> Settings</a>
+    <a href="#" class="nav-item"><span>↪️</span> Logout</a>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<div class="flex-1 flex flex-col overflow-hidden">
+
+  <!-- Top Bar -->
+  <header class="h-14 border-b border-white/5 flex items-center px-6 bg-[#0b1120] flex-shrink-0">
+    <div class="flex-1 flex items-center gap-3">
+      <h1 class="font-syne font-bold text-xl text-white">Alert Management</h1>
+      <p class="text-xs text-slate-400 hidden sm:block">System-wide monitoring and resource optimization.</p>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button onclick="filterAlerts('all')" class="px-5 py-2 text-sm rounded-2xl border border-white/10 hover:bg-white/5">All</button>
+      <button onclick="filterAlerts('high')" class="px-5 py-2 text-sm rounded-2xl border border-white/10 hover:bg-white/5">High Priority</button>
+      <button onclick="filterAlerts('resolved')" class="px-5 py-2 text-sm rounded-2xl border border-white/10 hover:bg-white/5">Resolved</button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 overflow-y-auto p-6 space-y-6">
+
+    <!-- Alert Cards -->
+    <div class="space-y-4">
+
+      <!-- High Priority Alert -->
+      <div class="alert-card card p-6 fu d1" style="border-left: 4px solid #ef4444;">
+        <div class="flex items-start justify-between">
+          <div class="flex gap-4">
+            <div class="text-2xl">📦</div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-3 py-1 text-xs font-bold rounded-full bg-red-500/20 text-red-400">HIGH PRIORITY</span>
+                <span class="text-xs text-slate-400">2 mins ago</span>
+              </div>
+              <p class="font-semibold mt-2">Low stock alert: "Branch A - Copper Wire below 10 units"</p>
+              <p class="text-slate-400 text-sm mt-1">Current inventory level is critical. Predicted stockout in 14 hours based on average velocity.</p>
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <button onclick="orderNow()" 
+                    class="btn-hover px-6 py-2.5 text-sm font-medium rounded-2xl text-white"
+                    style="background: linear-gradient(135deg, #f59e0b, #fbbf24);">Order Now</button>
+            <button onclick="resolveAlert(this)" 
+                    class="btn-hover px-6 py-2.5 text-sm font-medium rounded-2xl border border-white/20">Resolve</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Medium Priority Alert -->
+      <div class="alert-card card p-6 fu d2" style="border-left: 4px solid #f59e0b;">
+        <div class="flex items-start justify-between">
+          <div class="flex gap-4">
+            <div class="text-2xl">⚠️</div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-3 py-1 text-xs font-bold rounded-full bg-amber-500/20 text-amber-400">MEDIUM</span>
+                <span class="text-xs text-slate-400">1 hour ago</span>
+              </div>
+              <p class="font-semibold mt-2">Mismatch: "Inventory audit mismatch detected in Branch B"</p>
+              <p class="text-slate-400 text-sm mt-1">Found a variance of 12 units between digital ledger and physical scanning during the morning cycle.</p>
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <button onclick="investigateAlert()" 
+                    class="btn-hover px-6 py-2.5 text-sm font-medium rounded-2xl text-white"
+                    style="background: linear-gradient(135deg, #f59e0b, #fbbf24);">Investigate</button>
+            <button onclick="resolveAlert(this)" 
+                    class="btn-hover px-6 py-2.5 text-sm font-medium rounded-2xl border border-white/20">Resolve</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Low Suggestion -->
+      <div class="alert-card card p-6 fu d3" style="border-left: 4px solid #22d3ee;">
+        <div class="flex items-start justify-between">
+          <div class="flex gap-4">
+            <div class="text-2xl">✨</div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-3 py-1 text-xs font-bold rounded-full bg-cyan-500/20 text-cyan-400">LOW SUGGESTION</span>
+                <span class="text-xs text-slate-400">4 hours ago</span>
+              </div>
+              <p class="font-semibold mt-2">Optimize stock: Move LED panels to Branch A</p>
+              <p class="text-slate-400 text-sm mt-1">AI predictive model suggests excess inventory in Branch B can satisfy growing demand in Branch A.</p>
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <button onclick="initiateTransfer()" 
+                    class="btn-hover px-6 py-2.5 text-sm font-medium rounded-2xl border border-white/20">Initiate Transfer</button>
+            <button onclick="dismissAlert(this)" 
+                    class="btn-hover px-6 py-2.5 text-sm font-medium rounded-2xl border border-white/20">Dismiss</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+</div>
+
+<!-- Floating AI Button -->
+<button onclick="toggleAI()" 
+        class="fixed bottom-8 right-8 w-14 h-14 rounded-2xl flex items-center justify-center text-white ai-float shadow-2xl"
+        style="background: linear-gradient(135deg, #4f8ef7, #6366f1); box-shadow: 0 15px 35px rgba(79,142,247,0.5);">
+  🤖
+</button>
+
+<script>
+function resolveAlert(btn) {
+  btn.textContent = "Resolved ✓";
+  btn.style.backgroundColor = "#4ade80";
+  btn.style.color = "#111827";
+  alert("Alert marked as resolved.");
+}
+
+function dismissAlert(btn) {
+  btn.parentElement.parentElement.parentElement.style.opacity = "0.4";
+  alert("Suggestion dismissed.");
+}
+
+function orderNow() {
+  alert("🛒 Redirecting to create urgent order for Copper Wire...");
+}
+
+function investigateAlert() {
+  alert("🔍 Starting investigation for inventory mismatch in Branch B.");
+}
+
+function initiateTransfer() {
+  alert("🔄 Transfer initiated: LED panels from Branch B → Branch A.");
+}
+
+function filterAlerts(type) {
+  alert(`Filtering alerts: ${type}`);
+}
+
+function createOrder() {
+  alert("🛒 Create Order form opened.");
+}
+
+function toggleAI() {
+  alert("🤖 AI Assistant opened.\nAsk anything about alerts or system status.");
+}
+
+// Initialize with smooth load
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('%c✅ Alert Management Page Loaded with Smooth Animations!', 'color:#4f8ef7; font-weight:600');
+});
+</script>
+</body>
+</html>

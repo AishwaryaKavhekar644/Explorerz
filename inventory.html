@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kinetic ERP — Inventory</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Syne + Figtree -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            d900: '#080d18',
+            d800: '#0b1120',
+            d700: '#0f1829',
+            d600: '#131d2e',
+            d500: '#1a2540',
+            acc:  '#4f8ef7',
+            accp: '#a78bfa',
+            acct: '#22d3ee',
+          },
+          fontFamily: {
+            syne: ['Syne', 'sans-serif'],
+            fig:  ['Figtree', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Figtree:wght@300;400;500;600;700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body { font-family: 'Figtree', sans-serif; background: #080d18; color: #e2e8f0; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 4px; }
+
+    /* Glass Card */
+    .card {
+      background: #111827;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    /* Sidebar */
+    #sidebar {
+      background: #0b1120;
+      border-right: 1px solid rgba(255,255,255,0.06);
+      width: 210px;
+      min-width: 210px;
+    }
+
+    /* Nav Items */
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 9px 12px;
+      border-radius: 10px;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: #64748b;
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+    .nav-item:hover  { background: rgba(79,142,247,.1); color: #93c5fd; }
+    .nav-item.active { background: rgba(79,142,247,.14); color: #4f8ef7; border-left: 3px solid #4f8ef7; padding-left: 9px; }
+
+    /* KPI Cards */
+    .kpi-card { transition: transform .3s ease, box-shadow .3s ease; }
+    .kpi-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 24px 48px rgba(0,0,0,.5);
+    }
+
+    /* Table Row */
+    .trow { transition: all .2s ease; }
+    .trow:hover { background: rgba(79,142,247,.06); transform: translateX(4px); }
+
+    /* Status Badges */
+    .status-instock { background: rgba(34,197,94,.15); color: #4ade80; border: 1px solid rgba(34,197,94,.3); }
+    .status-low     { background: rgba(234,179,8,.15); color: #fbbf24; border: 1px solid rgba(234,179,8,.3); }
+
+    /* Animations */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fu { animation: fadeUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) both; }
+    .d1 { animation-delay: 0.1s; }
+    .d2 { animation-delay: 0.2s; }
+    .d3 { animation-delay: 0.3s; }
+    .d4 { animation-delay: 0.4s; }
+
+    .ai-float {
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+  </style>
+</head>
+<body class="flex overflow-hidden" style="height:100vh;">
+
+<!-- SIDEBAR -->
+<aside id="sidebar" class="flex flex-col h-full overflow-y-auto flex-shrink-0">
+  <div class="px-5 pt-5 pb-4 border-b border-white/5">
+    <span class="font-syne font-bold text-[15px] tracking-wide">
+      <span style="color:#4f8ef7">Kinetic</span>
+      <span class="text-white"> Intelligence</span>
+    </span>
+    <p class="text-[10px] text-slate-500 mt-0.5">MULTI-BRANCH</p>
+  </div>
+
+  <!-- User -->
+  <div class="mx-3 mt-4 p-3 rounded-xl flex items-center gap-3" style="background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07);">
+    <div class="w-9 h-9 rounded-xl flex items-center justify-center font-syne font-bold text-sm text-white"
+         style="background: linear-gradient(135deg,#4f8ef7,#6366f1);">AU</div>
+    <div>
+      <div class="text-white text-sm font-semibold">Admin User</div>
+      <div class="text-[11px] text-slate-500">Global Access</div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="flex-1 px-3 mt-6 space-y-0.5">
+    <a href="index.html" class="nav-item">
+      <span>🏠</span> Dashboard
+    </a>
+    <a href="inventory.html" class="nav-item active">
+      <span>📦</span> Inventory
+    </a>
+    <a href="orders.html" class="nav-item">
+      <span>🛒</span> Orders
+    </a>
+    <a href="analytics.html" class="nav-item">
+      <span>📊</span> Analytics
+    </a>
+    <a href="alerts.html" class="nav-item">
+      <span>🛎️</span> Alerts
+    </a>
+    <a href="ai-assistant.html" class="nav-item">
+      <span>🤖</span> AI Assistant
+    </a>
+  </nav>
+
+  <!-- Create Order -->
+  <div class="px-3 py-4">
+    <button onclick="createOrder()" 
+            class="w-full py-3 rounded-2xl text-white font-semibold flex items-center justify-center gap-2"
+            style="background: linear-gradient(135deg, #4f8ef7, #6366f1);">
+      <span class="text-lg">+</span> Create Order
+    </button>
+  </div>
+
+  <!-- Bottom -->
+  <div class="px-3 pb-6 space-y-1">
+    <a href="settings.html" class="nav-item"><span>⚙️</span> Settings</a>
+    <a href="#" class="nav-item"><span>↪️</span> Logout</a>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<div class="flex-1 flex flex-col overflow-hidden">
+
+  <!-- Top Bar -->
+  <header class="h-14 border-b border-white/5 flex items-center px-6 bg-[#0b1120] flex-shrink-0">
+    <div class="flex-1 flex items-center gap-4">
+      <h1 class="font-syne font-bold text-xl text-white">Inventory Management</h1>
+    </div>
+    
+    <div class="flex items-center gap-4">
+      <div class="relative w-72">
+        <input type="text" id="searchInput" placeholder="Search inventory, branches, or SKUs..." 
+               class="w-full bg-[#1a2540] border border-white/10 rounded-2xl py-2.5 pl-10 text-sm focus:outline-none focus:border-[#4f8ef7]"
+               onkeyup="filterTable()">
+        <span class="absolute left-4 top-3 text-slate-500">🔍</span>
+      </div>
+
+      <button onclick="exportCSV()" class="px-5 py-2 rounded-2xl text-sm font-medium border border-white/10 hover:bg-white/5 transition-colors">
+        Export CSV
+      </button>
+      <button onclick="addProduct()" 
+              class="px-6 py-2 rounded-2xl text-sm font-semibold text-white"
+              style="background: linear-gradient(135deg, #4f8ef7, #6366f1);">
+        + Add Product
+      </button>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main class="flex-1 overflow-y-auto p-6 space-y-6">
+
+    <!-- KPI Row -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="card p-6 kpi-card fu d1">
+        <p class="text-xs font-semibold tracking-widest text-slate-500">TOTAL SKUS</p>
+        <div class="text-4xl font-syne font-bold text-white mt-2">1,284</div>
+        <div class="flex items-center gap-2 mt-3 text-green-400 text-sm">
+          <span>+12.5%</span>
+          <span class="text-xs text-slate-500">from last month</span>
+        </div>
+      </div>
+
+      <div class="card p-6 kpi-card fu d2">
+        <p class="text-xs font-semibold tracking-widest text-slate-500">LOW STOCK</p>
+        <div class="text-4xl font-syne font-bold text-white mt-2">24</div>
+        <div class="inline-block mt-3 px-3 py-1 text-xs font-semibold rounded-full bg-amber-500/20 text-amber-400">Critical</div>
+      </div>
+
+      <div class="card p-6 kpi-card fu d3">
+        <p class="text-xs font-semibold tracking-widest text-slate-500">TOTAL VALUE</p>
+        <div class="text-4xl font-syne font-bold text-white mt-2">$428k</div>
+        <div class="text-xs text-slate-500 mt-3">USD</div>
+      </div>
+
+      <div class="card p-6 kpi-card fu d4">
+        <p class="text-xs font-semibold tracking-widest text-slate-500">OUT OF STOCK</p>
+        <div class="text-4xl font-syne font-bold text-white mt-2">8</div>
+        <div class="inline-block mt-3 px-3 py-1 text-xs font-semibold rounded-full bg-red-500/20 text-red-400">Action Req.</div>
+      </div>
+    </div>
+
+    <!-- Main Table -->
+    <div class="card p-6">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="font-syne font-semibold text-lg">Products</h2>
+        <span class="text-xs text-slate-500">Showing 4 of 1,284 products</span>
+      </div>
+
+      <table class="w-full">
+        <thead>
+          <tr class="text-xs font-semibold text-slate-500 border-b border-white/10">
+            <th class="text-left py-4 font-medium">PRODUCT NAME</th>
+            <th class="text-left py-4 font-medium">BRANCH A STOCK</th>
+            <th class="text-left py-4 font-medium">BRANCH B STOCK</th>
+            <th class="text-left py-4 font-medium">TOTAL STOCK</th>
+            <th class="text-left py-4 font-medium">STATUS</th>
+            <th class="text-right py-4 font-medium">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody id="inventoryTable" class="text-sm"></tbody>
+      </table>
+    </div>
+
+    <!-- Bottom Section: Branch Distribution + AI Optimization -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Branch Distribution -->
+      <div class="card p-6">
+        <h3 class="font-syne font-semibold mb-4">Branch Distribution</h3>
+        <p class="text-xs text-slate-500 mb-6">Live geolocation of warehouse assets</p>
+        
+        <div class="bg-[#0b1120] h-80 rounded-2xl flex items-center justify-center relative overflow-hidden">
+          <div class="text-center">
+            <div class="text-6xl mb-4">📍</div>
+            <div class="space-y-6">
+              <div class="bg-[#1a2540] px-5 py-3 rounded-2xl inline-block">
+                <div class="text-xs text-slate-400">BRANCH A</div>
+                <div class="font-semibold text-white">Downtown Hub</div>
+              </div>
+              <div class="bg-[#1a2540] px-5 py-3 rounded-2xl inline-block">
+                <div class="text-xs text-slate-400">BRANCH B</div>
+                <div class="font-semibold text-white">North Logistics</div>
+              </div>
+            </div>
+          </div>
+          <!-- Fake map overlay -->
+          <div class="absolute inset-0 bg-gradient-to-br from-transparent via-cyan-500/5 to-transparent"></div>
+        </div>
+      </div>
+
+      
+      
+
+<!-- AI Chat Panel (Minimal for now) -->
+<div id="aiPanel" class="hidden fixed bottom-28 right-8 w-80 card p-5">
+  <div class="flex justify-between items-center mb-4">
+    <div class="font-semibold">AI Assistant</div>
+    <button onclick="toggleAI()" class="text-slate-400">✕</button>
+  </div>
+  <div class="text-xs text-slate-400 mb-4">Ask anything about inventory...</div>
+  <input id="aiQuickInput" type="text" placeholder="e.g. Show low stock items" 
+         class="w-full bg-[#1a2540] border border-white/10 rounded-2xl px-4 py-3 text-sm"
+         onkeydown="if(event.key==='Enter') quickAIResponse()">
+</div>
+
+<script>
+// Sample Inventory Data
+const inventoryData = [
+  {
+    name: "Copper Wire 2.5mm",
+    sku: "CW-25-XL",
+    branchA: "450 Units",
+    branchB: "1,200 Units",
+    total: "1,650",
+    status: "instock"
+  },
+  {
+    name: "MCB 10A",
+    sku: "MCB-10-01",
+    branchA: "12 Units",
+    branchB: "8 Units",
+    total: "20",
+    status: "low"
+  },
+  {
+    name: "LED Panel 12W",
+    sku: "LED-12-PNL",
+    branchA: "85 Units",
+    branchB: "240 Units",
+    total: "325",
+    status: "instock"
+  },
+  {
+    name: "Conduit Pipe 20mm",
+    sku: "CP-20-PVC",
+    branchA: "1,500 Units",
+    branchB: "900 Units",
+    total: "2,400",
+    status: "instock"
+  }
+];
+
+// Render Inventory Table
+function renderInventory() {
+  const tbody = document.getElementById('inventoryTable');
+  tbody.innerHTML = '';
+
+  inventoryData.forEach(item => {
+    const statusHTML = item.status === 'instock' 
+      ? `<span class="status-instock text-xs px-3 py-1 rounded-full">IN STOCK</span>`
+      : `<span class="status-low text-xs px-3 py-1 rounded-full">LOW STOCK</span>`;
+
+    tbody.innerHTML += `
+      <tr class="trow border-b border-white/10 last:border-none">
+        <td class="py-5">
+          <div class="font-medium">${item.name}</div>
+          <div class="text-xs text-slate-500">SKU: ${item.sku}</div>
+        </td>
+        <td class="py-5 text-slate-300">${item.branchA}</td>
+        <td class="py-5 text-slate-300">${item.branchB}</td>
+        <td class="py-5 font-semibold">${item.total}</td>
+        <td class="py-5">${statusHTML}</td>
+        <td class="py-5 text-right">
+          <button onclick="editProduct('${item.name}')" 
+                  class="text-xs px-4 py-1.5 bg-white/5 hover:bg-white/10 rounded-xl transition-colors">
+            Edit
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+// Simple Table Filter
+function filterTable() {
+  const term = document.getElementById('searchInput').value.toLowerCase();
+  const rows = document.querySelectorAll('#inventoryTable tr');
+  
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = text.includes(term) ? '' : 'none';
+  });
+}
+
+// Fake Actions
+function addProduct() {
+  alert("🛠️ Add New Product modal would open here (coming in next update)");
+}
+
+function editProduct(name) {
+  alert(`✏️ Editing product: ${name}`);
+}
+
+function exportCSV() {
+  alert("📤 Exporting inventory as CSV...");
+}
+
+function createOrder() {
+  alert("🛒 Create Order form opened (Orders page coming soon)");
+}
+
+function generateReport() {
+  alert("📊 AI Prediction Report generated!\n\nLED Panel stock recommendation sent to Branch B.");
+}
+
+// AI Quick Chat
+function toggleAI() {
+  const panel = document.getElementById('aiPanel');
+  panel.classList.toggle('hidden');
+}
+
+function quickAIResponse() {
+  const input = document.getElementById('aiQuickInput');
+  if (!input.value.trim()) return;
+  
+  alert(`🤖 AI Response: "${input.value}"\n\n(Full AI chat coming soon)`);
+  input.value = '';
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  renderInventory();
+  console.log('%c✅ Inventory Page Loaded Successfully!', 'color:#4f8ef7; font-weight:600');
+});
+</script>
+</body>
+</html>

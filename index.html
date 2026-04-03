@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kinetic ERP — Dashboard</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Syne (display) + Figtree (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            d900: '#080d18',
+            d800: '#0b1120',
+            d700: '#0f1829',
+            d600: '#131d2e',
+            d500: '#1a2540',
+            acc:  '#4f8ef7',
+            accp: '#a78bfa',
+            acct: '#22d3ee',
+          },
+          fontFamily: {
+            syne:   ['Syne', 'sans-serif'],
+            fig:    ['Figtree', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* ── Base ─────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body { font-family: 'Figtree', sans-serif; background: #080d18; color: #e2e8f0; }
+
+    /* ── Scrollbar ────────────────────── */
+    ::-webkit-scrollbar          { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track    { background: transparent; }
+    ::-webkit-scrollbar-thumb    { background: rgba(255,255,255,0.1); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover{ background: rgba(255,255,255,0.18); }
+
+    /* ── Glass Card ───────────────────── */
+    .card {
+      background: #111827;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg,rgba(255,255,255,0.03) 0%,transparent 60%);
+      pointer-events: none;
+    }
+
+    /* ── Sidebar ──────────────────────── */
+    #sidebar {
+      background: #0b1120;
+      border-right: 1px solid rgba(255,255,255,0.06);
+      width: 210px;
+      min-width: 210px;
+      transition: transform .3s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* ── Nav Items ────────────────────── */
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 9px 12px;
+      border-radius: 10px;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: #64748b;
+      cursor: pointer;
+      transition: all .2s ease;
+      position: relative;
+      text-decoration: none;
+    }
+    .nav-item:hover  { background: rgba(79,142,247,.1); color: #93c5fd; }
+    .nav-item.active { background: rgba(79,142,247,.14); color: #4f8ef7; border-left: 3px solid #4f8ef7; padding-left: 9px; }
+    .nav-item svg    { flex-shrink: 0; }
+
+    /* ── KPI Cards ────────────────────── */
+    .kpi-card { transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease; cursor: pointer; }
+    .kpi-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 24px 48px rgba(0,0,0,.5), 0 0 24px rgba(79,142,247,.12);
+      border-color: rgba(79,142,247,.3) !important;
+    }
+    .kpi-card:hover .kpi-num { text-shadow: 0 0 24px rgba(79,142,247,.45); }
+
+    /* ── Alert cards ──────────────────── */
+    .alert-card { transition: transform .25s ease, box-shadow .25s ease; cursor: pointer; }
+    .alert-card:hover { transform: translateX(5px); box-shadow: 4px 0 12px rgba(0,0,0,.3); }
+
+    /* ── Table rows ───────────────────── */
+    .trow { transition: background .2s ease, transform .2s ease; border-radius: 12px; cursor: pointer; }
+    .trow:hover { background: rgba(79,142,247,.05); transform: translateX(2px); }
+
+    /* ── Buttons ──────────────────────── */
+    .btn-primary {
+      background: linear-gradient(135deg, #3b82f6, #6366f1);
+      box-shadow: 0 4px 18px rgba(59,130,246,.35);
+      transition: all .3s ease;
+    }
+    .btn-primary:hover { box-shadow: 0 8px 28px rgba(59,130,246,.55); transform: translateY(-2px); }
+
+    /* ── Status badges ────────────────── */
+    .b-pending   { background: rgba(234,179,8,.13);  color: #fbbf24; border: 1px solid rgba(234,179,8,.28); }
+    .b-shipped   { background: rgba(59,130,246,.13); color: #60a5fa; border: 1px solid rgba(59,130,246,.28); }
+    .b-delivered { background: rgba(34,197,94,.13);  color: #4ade80; border: 1px solid rgba(34,197,94,.28); }
+
+    /* ── Pulse animations ─────────────── */
+    @keyframes pulseDot {
+      0%,100% { box-shadow: 0 0 0 0 rgba(34,197,94,.5); }
+      50%      { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+    }
+    .live-dot { animation: pulseDot 2s infinite; }
+
+    @keyframes alertPulse {
+      0%,100% { transform: scale(1); opacity: 1; }
+      50%      { transform: scale(1.4); opacity: .65; }
+    }
+    .alert-pulse { animation: alertPulse 1.6s infinite; }
+
+    /* ── Float animation (AI bot) ─────── */
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-7px); }
+    }
+    .ai-float { animation: float 3.2s ease-in-out infinite; }
+
+    /* ── Fade / slide entrance ────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fu  { animation: fadeUp .55s cubic-bezier(.4,0,.2,1) both; }
+    .d1  { animation-delay: .08s; }
+    .d2  { animation-delay: .18s; }
+    .d3  { animation-delay: .28s; }
+    .d4  { animation-delay: .38s; }
+    .d5  { animation-delay: .48s; }
+    .d6  { animation-delay: .56s; }
+    .d7  { animation-delay: .64s; }
+
+    @keyframes slideRight {
+      from { opacity: 0; transform: translateX(24px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    .sr { animation: slideRight .5s cubic-bezier(.4,0,.2,1) both; }
+
+    /* ── Subtle grid texture ──────────── */
+    .grid-tex {
+      background-image:
+        linear-gradient(rgba(79,142,247,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(79,142,247,.025) 1px, transparent 1px);
+      background-size: 38px 38px;
+    }
+
+    /* ── Search input ─────────────────── */
+    .search-inp {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 10px;
+      transition: border-color .25s, box-shadow .25s;
+    }
+    .search-inp:focus {
+      border-color: rgba(79,142,247,.45);
+      box-shadow: 0 0 0 3px rgba(79,142,247,.1);
+      outline: none;
+    }
+
+    /* ── AI input ─────────────────────── */
+    .ai-inp {
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 10px;
+      transition: border-color .2s;
+    }
+    .ai-inp:focus { border-color: rgba(79,142,247,.5); outline: none; }
+
+    /* ── Modal backdrop ───────────────── */
+    #modal { background: rgba(0,0,0,.65); backdrop-filter: blur(8px); }
+
+    /* ── Responsive sidebar overlay ───── */
+    #overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 40; }
+
+    /* ── Toast ────────────────────────── */
+    .toast {
+      position: fixed; top: 20px; right: 20px; z-index: 999;
+      padding: 12px 20px; border-radius: 12px; font-size: 13px; font-weight: 600;
+      color: #fff; opacity: 0; transition: opacity .3s ease;
+      backdrop-filter: blur(10px);
+    }
+    .toast.show { opacity: 1; }
+
+    /* ── Tooltip on icon buttons ──────── */
+    [data-tip] { position: relative; }
+    [data-tip]::after {
+      content: attr(data-tip);
+      position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+      background: #1e293b; color: #e2e8f0; font-size: 11px; font-weight: 500;
+      padding: 4px 9px; border-radius: 7px; white-space: nowrap;
+      opacity: 0; pointer-events: none; transition: opacity .2s;
+      border: 1px solid rgba(255,255,255,.08);
+    }
+    [data-tip]:hover::after { opacity: 1; }
+
+    /* ── Icon glow on top bar ─────────── */
+    .icon-btn { transition: color .2s, background .2s, transform .2s; border-radius: 10px; }
+    .icon-btn:hover { background: rgba(255,255,255,.06); color: #e2e8f0; transform: scale(1.08); }
+
+    /* ── Glow radial blobs in KPI cards ── */
+    .blob {
+      position: absolute; border-radius: 50%;
+      pointer-events: none;
+      filter: blur(24px);
+      opacity: .12;
+    }
+
+    /* ── Progress bar animation ─────────── */
+    @keyframes barGrow {
+      from { width: 0; }
+      to   { width: var(--tw); }
+    }
+    .bar-grow { animation: barGrow 1.2s cubic-bezier(.4,0,.2,1) .6s both; }
+
+    /* mobile sidebar closed */
+    @media (max-width: 767px) {
+      #sidebar { position: fixed; left: 0; top: 0; height: 100%; z-index: 50; transform: translateX(-100%); }
+      #sidebar.open { transform: translateX(0); }
+      #overlay.open { display: block; }
+    }
+  </style>
+</head>
+
+<body class="grid-tex flex overflow-hidden" style="height:100vh;">
+
+<!-- Mobile Overlay -->
+<div id="overlay" onclick="closeSidebar()"></div>
+
+<!-- ══════════════════════════════════════════════════
+     SIDEBAR
+══════════════════════════════════════════════════ -->
+<aside id="sidebar" class="flex flex-col h-full overflow-y-auto overflow-x-hidden flex-shrink-0">
+
+  <!-- Brand -->
+  <div class="px-5 pt-5 pb-4 border-b border-white/5 flex-shrink-0">
+    <span class="font-syne font-bold text-[15px] tracking-wide">
+      <span style="color:#4f8ef7">Kinetic</span>
+      <span class="text-white"> Intelligence</span>
+    </span>
+  </div>
+
+  <!-- User profile card -->
+  <div class="mx-3 mt-4 p-3 rounded-xl flex items-center gap-3 flex-shrink-0"
+       style="background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07);">
+    <div class="w-9 h-9 rounded-xl flex items-center justify-center font-syne font-bold text-sm text-white flex-shrink-0"
+         style="background: linear-gradient(135deg,#f59e0b,#ef4444);">AU</div>
+    <div>
+      <div class="text-white text-sm font-semibold leading-tight">Admin User</div>
+      <div class="text-[11px] text-slate-500 mt-0.5">Multi-Branch</div>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <nav class="flex-1 px-3 mt-5 space-y-0.5 overflow-y-auto">
+    <p class="text-[10px] font-semibold uppercase tracking-widest text-slate-700 px-2 mb-3">Main Menu</p>
+
+    <a href="dashboard.html" class="nav-item active">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+        <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/>
+        <rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>
+      </svg>
+      Dashboard
+    </a>
+
+    <a href="inventory.html" class="nav-item">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+        <path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/>
+        <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/>
+      </svg>
+      Inventory
+    </a>
+
+    <a href="orders.html" class="nav-item">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+        <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 4h12"/>
+        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+      </svg>
+      Orders
+    </a>
+
+    <a href="analytics.html" class="nav-item">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+        <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+      </svg>
+      Analytics
+    </a>
+
+    <a class="nav-item" onclick="navClick(this,'alerts')">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+        <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+      </svg>
+      Alerts
+      <span id="alertBadge" class="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+            style="background:rgba(239,68,68,.2);color:#f87171;">3</span>
+    </a>
+
+    <a href="ai-assistant.html" class="nav-item">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+        <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+      </svg>
+      AI Assistant
+    </a>
+  </nav>
+
+  <!-- Create Order -->
+  <div class="px-3 py-4 flex-shrink-0">
+    <button onclick="openModal()" class="btn-primary w-full py-2.5 rounded-xl text-white text-sm font-semibold flex items-center justify-center gap-2">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path d="M12 4v16m8-8H4"/></svg>
+      Create Order
+    </button>
+  </div>
+
+  <!-- Bottom items -->
+  <div class="px-3 pb-5 pt-3 border-t border-white/5 space-y-0.5 flex-shrink-0">
+   <a href="settings.html" class="nav-item">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+        <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+        <circle cx="12" cy="12" r="3"/>
+      </svg>
+      Settings
+    </a>
+    <a class="nav-item">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+        <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+      </svg>
+      Logout
+    </a>
+  </div>
+</aside>
+
+<!-- ══════════════════════════════════════════════════
+     MAIN WRAPPER
+══════════════════════════════════════════════════ -->
+<div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+  <!-- ── Top Bar ── -->
+  <header class="flex items-center gap-3 px-5 py-3 border-b border-white/5 flex-shrink-0"
+          style="background:#0b1120; min-height:56px;">
+
+    <!-- Mobile hamburger -->
+    <button class="md:hidden icon-btn p-2 text-slate-400" onclick="openSidebar()">
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+
+    <span class="font-syne font-bold text-[16px] flex-shrink-0 hidden md:block">
+      <span style="color:#4f8ef7">Kinetic</span><span class="text-white"> ERP</span>
+    </span>
+
+    <!-- Search -->
+    <div class="flex-1 max-w-xs mx-3 hidden sm:block">
+      <div class="relative">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" placeholder="Global system search…"
+               class="search-inp w-full pl-8 pr-4 py-2 text-sm text-slate-300 placeholder-slate-600"
+               style="font-family:'Figtree',sans-serif;" />
+      </div>
+    </div>
+
+    <div class="ml-auto flex items-center gap-1.5">
+      <!-- Notification -->
+      <button class="icon-btn p-2 text-slate-500 relative" data-tip="Notifications">
+        <svg class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+        </svg>
+        <span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-red-500"></span>
+      </button>
+
+      <!-- Settings -->
+      <button class="icon-btn p-2 text-slate-500" data-tip="Settings">
+        <svg class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+      </button>
+
+      <!-- Avatar -->
+      <div class="w-8 h-8 rounded-xl flex items-center justify-center font-syne font-bold text-xs text-white cursor-pointer hover:opacity-90 transition-opacity"
+           style="background:linear-gradient(135deg,#f59e0b,#ef4444);">AU</div>
+    </div>
+  </header>
+
+  <!-- ── Scrollable Content ── -->
+  <main class="flex-1 overflow-y-auto px-5 py-5 space-y-5">
+
+    <!-- Page title row -->
+    <div class="flex flex-wrap items-start justify-between gap-3 fu d1">
+      <div>
+        <h1 class="font-syne font-bold text-2xl sm:text-3xl text-white leading-tight" style="letter-spacing:-.5px;">
+          System Overview
+        </h1>
+        <p class="text-slate-500 text-sm mt-1">Real-time resource and supply chain status.</p>
+      </div>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="w-2 h-2 rounded-full bg-green-400 live-dot"></span>
+        <span class="text-slate-400 text-xs font-medium">Live Data Syncing</span>
+      </div>
+    </div>
+
+    <!-- ── KPI Cards ── -->
+    <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
+
+      <!-- Total Products -->
+      <div class="card kpi-card p-5 fu d2">
+        <div class="blob w-28 h-28 top-0 right-0 translate-x-8 -translate-y-8" style="background:#4f8ef7;"></div>
+        <p class="text-[10px] font-semibold uppercase tracking-widest text-slate-600 mb-3">Total Products</p>
+        <div id="kpi1" class="kpi-num font-syne font-bold text-3xl text-white">0</div>
+        <div class="flex items-center gap-1 mt-2">
+          <svg class="w-3 h-3 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/></svg>
+          <span class="text-green-400 text-xs font-semibold">+2.4%</span>
+        </div>
+        <div class="absolute bottom-3 right-4 opacity-[.07]">
+          <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM4 3h16M8 21h8"/></svg>
+        </div>
+      </div>
+
+      <!-- Total Stock -->
+      <div class="card kpi-card p-5 fu d3">
+        <div class="blob w-28 h-28 top-0 right-0 translate-x-8 -translate-y-8" style="background:#22d3ee;"></div>
+        <p class="text-[10px] font-semibold uppercase tracking-widest text-slate-600 mb-3">Total Stock Units</p>
+        <div id="kpi2" class="kpi-num font-syne font-bold text-3xl text-white">0</div>
+        <div class="mt-2">
+          <span class="text-slate-500 text-xs font-medium">Bulk Load</span>
+        </div>
+        <div class="absolute bottom-3 right-4 opacity-[.07]">
+          <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 24 24"><path d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+        </div>
+      </div>
+
+      <!-- Low Stock -->
+      <div class="card kpi-card p-5 fu d4">
+        <div class="blob w-28 h-28 top-0 right-0 translate-x-8 -translate-y-8" style="background:#ef4444;"></div>
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-[10px] font-semibold uppercase tracking-widest text-slate-600">Low Stock Items</p>
+          <span class="w-2 h-2 rounded-full bg-red-500 alert-pulse"></span>
+        </div>
+        <div class="kpi-num font-syne font-bold text-3xl text-white">12</div>
+        <div class="mt-2">
+          <span class="text-red-400 text-xs font-semibold">Critical</span>
+        </div>
+        <div class="absolute bottom-3 right-4 opacity-[.07]">
+          <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        </div>
+      </div>
+
+      <!-- Pending Orders -->
+      <div class="card kpi-card p-5 fu d4">
+        <div class="blob w-28 h-28 top-0 right-0 translate-x-8 -translate-y-8" style="background:#a78bfa;"></div>
+        <p class="text-[10px] font-semibold uppercase tracking-widest text-slate-600 mb-3">Pending Orders</p>
+        <div class="kpi-num font-syne font-bold text-3xl text-white">8</div>
+        <div class="mt-2">
+          <span class="text-yellow-400 text-xs font-semibold">Awaiting Auth</span>
+        </div>
+        <div class="absolute bottom-3 right-4 opacity-[.07]">
+          <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Chart + Alerts Row ── -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+      <!-- Bar Chart -->
+      <div class="card p-5 lg:col-span-2 fu d5">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-syne font-semibold text-white text-[15px]">Stock Distribution per Branch</h2>
+          <button class="text-xs font-semibold transition-colors hover:text-blue-300"
+                  style="color:#4f8ef7;">Full Analytics →</button>
+        </div>
+        <div style="height:210px; position:relative;">
+          <canvas id="stockChart"></canvas>
+        </div>
+      </div>
+
+      <!-- System Alerts -->
+      <div class="card p-5 fu d5 sr">
+        <div class="flex items-center gap-2 mb-4">
+          <svg class="w-[18px] h-[18px] flex-shrink-0" style="color:#f59e0b;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+          </svg>
+          <h2 class="font-syne font-semibold text-white text-[15px]">System Alerts</h2>
+        </div>
+
+        <div class="space-y-2.5">
+          <!-- Stock Warning -->
+          <div class="alert-card p-3 rounded-xl"
+               style="background:rgba(255,255,255,.03);border:1px solid rgba(239,68,68,.18);border-left:3px solid #ef4444;">
+            <p class="text-[11px] font-bold text-red-400 mb-1">Stock Warning</p>
+            <p class="text-slate-400 text-[12px] leading-relaxed">
+              Branch A low on copper wiring. Current: 15m. Threshold: 50m.
+            </p>
+          </div>
+
+          <!-- Intelligence Insight -->
+          <div class="alert-card p-3 rounded-xl"
+               style="background:rgba(255,255,255,.03);border:1px solid rgba(168,85,247,.18);border-left:3px solid #a855f7;">
+            <p class="text-[11px] font-bold text-purple-400 mb-1">Intelligence Insight</p>
+            <p class="text-slate-400 text-[12px] leading-relaxed">
+              Demand spike: 40A Breakers in Pune. Predicted 200% increase next week.
+            </p>
+          </div>
+
+          <!-- AI Recommendation -->
+          <div class="alert-card p-3 rounded-xl"
+               style="background:rgba(255,255,255,.03);border:1px solid rgba(34,211,238,.18);border-left:3px solid #22d3ee;">
+            <p class="text-[11px] font-bold text-cyan-400 mb-1">AI Recommendation</p>
+            <p class="text-slate-400 text-[12px] leading-relaxed">
+              Suggest transfer: 20 units from Branch B to A to minimize shipping cost.
+            </p>
+          </div>
+        </div>
+
+        <!-- Mini progress section -->
+        <div class="mt-4 pt-3 border-t border-white/5">
+          <div class="flex justify-between text-[10px] text-slate-600 font-medium uppercase tracking-widest mb-2">
+            <span>Branch Utilization</span>
+            <span>Optimal</span>
+          </div>
+          <div class="space-y-1.5">
+            <div>
+              <div class="flex justify-between text-[11px] text-slate-500 mb-0.5"><span>Branch A</span><span class="text-red-400">30%</span></div>
+              <div class="h-1 rounded-full" style="background:rgba(255,255,255,.07);">
+                <div class="h-1 rounded-full bg-red-500" style="width:30%;"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px] text-slate-500 mb-0.5"><span>Branch B</span><span class="text-green-400">78%</span></div>
+              <div class="h-1 rounded-full" style="background:rgba(255,255,255,.07);">
+                <div class="h-1 rounded-full bg-green-400" style="width:78%;"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px] text-slate-500 mb-0.5"><span>Branch C</span><span style="color:#4f8ef7;">62%</span></div>
+              <div class="h-1 rounded-full" style="background:rgba(255,255,255,.07);">
+                <div class="h-1 rounded-full" style="width:62%;background:#4f8ef7;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Recent Orders ── -->
+    <div class="card p-5 fu d6">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+        <h2 class="font-syne font-semibold text-white text-[15px]">Recent Orders</h2>
+        <span class="text-xs text-slate-600 font-medium">Last 24 hours</span>
+      </div>
+
+      <!-- Header row -->
+      <div class="hidden sm:grid grid-cols-5 gap-3 px-4 py-2 mb-1 rounded-lg"
+           style="background:rgba(255,255,255,.02);">
+        <span class="text-[10px] font-semibold uppercase tracking-widest text-slate-700">Order ID</span>
+        <span class="text-[10px] font-semibold uppercase tracking-widest text-slate-700">Material</span>
+        <span class="text-[10px] font-semibold uppercase tracking-widest text-slate-700">Branch</span>
+        <span class="text-[10px] font-semibold uppercase tracking-widest text-slate-700">Status</span>
+        <span class="text-[10px] font-semibold uppercase tracking-widest text-slate-700">Timestamp</span>
+      </div>
+
+      <!-- Rows -->
+      <div id="ordersTable" class="space-y-1"></div>
+    </div>
+
+    <!-- Spacer so content doesn't hide behind AI widget on mobile -->
+    <div class="h-4"></div>
+  </main>
+</div>
+<!-- /MAIN WRAPPER -->
+
+<!-- ══════════════════════════════════════════════════
+     FLOATING AI WIDGET
+══════════════════════════════════════════════════ -->
+<div id="aiWrap" class="fixed z-30 flex flex-col items-end" style="bottom:24px;right:24px;">
+
+  <!-- Chat panel -->
+  <div id="aiPanel" class="card mb-3 transition-all duration-300"
+       style="width:290px;border-color:rgba(79,142,247,.25);box-shadow:0 24px 60px rgba(0,0,0,.55),0 0 30px rgba(79,142,247,.08);">
+
+    <div class="p-4">
+      <!-- Header -->
+      <div class="flex items-center gap-2.5 mb-3">
+        <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+             style="background:linear-gradient(135deg,#4f8ef7,#6366f1);">
+          <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h16a2 2 0 012 2v10a2 2 0 01-2 2h-2"/>
+          </svg>
+        </div>
+        <div>
+          <div class="text-white text-xs font-semibold">AI Assistant</div>
+          <div class="flex items-center gap-1 mt-0.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-green-400 live-dot"></span>
+            <span class="text-[10px] text-slate-500">Online &amp; Analyzing</span>
+          </div>
+        </div>
+        <button onclick="toggleAI()" class="ml-auto text-slate-600 hover:text-slate-400 transition-colors">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Prompt hint -->
+      <div id="aiHint" class="rounded-xl p-2.5 mb-3 text-[12px] text-slate-400 italic leading-relaxed"
+           style="background:rgba(79,142,247,.07);border:1px solid rgba(79,142,247,.14);">
+        "Ask me something about stock trends…"
+      </div>
+
+      <!-- Chat history -->
+      <div id="chatHistory" class="space-y-2 max-h-36 overflow-y-auto mb-3"></div>
+
+      <!-- Input row -->
+      <div class="flex items-center gap-2">
+        <input id="aiInput" type="text" placeholder="Type here…"
+               class="ai-inp flex-1 text-[13px] text-slate-300 placeholder-slate-600 px-3 py-2"
+               style="font-family:'Figtree',sans-serif;"
+               onkeydown="if(event.key==='Enter') sendMsg()" />
+        <button onclick="sendMsg()" class="p-2 rounded-xl transition-all hover:scale-105"
+                style="background:rgba(79,142,247,.18);">
+          <svg class="w-4 h-4" style="color:#4f8ef7;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M22 2L11 13M22 2L15 22l-4-9-9-4 19-7z"/>
+          </svg>
+        </button>
+        <button id="micBtn" onclick="toggleMic()" class="p-2 rounded-xl transition-all hover:scale-105"
+                style="background:rgba(255,255,255,.06);">
+          <svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating bot button -->
+  <button onclick="toggleAI()" class="ai-float w-12 h-12 rounded-2xl flex items-center justify-center text-white transition-all hover:scale-110 active:scale-95"
+          style="background:linear-gradient(135deg,#4f8ef7,#6366f1);box-shadow:0 8px 28px rgba(79,142,247,.45);"
+          title="AI Assistant">
+    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+      <path d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h16a2 2 0 012 2v10a2 2 0 01-2 2h-2"/>
+    </svg>
+  </button>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     CREATE ORDER MODAL
+══════════════════════════════════════════════════ -->
+<div id="modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+  <div class="card w-full max-w-md p-6" style="border-color:rgba(255,255,255,.1);">
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="font-syne font-bold text-white text-lg">Create New Order</h2>
+      <button onclick="closeModal()" class="text-slate-500 hover:text-slate-300 transition-colors">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="space-y-4">
+      <div>
+        <label class="block text-[10px] font-semibold uppercase tracking-widest text-slate-600 mb-1.5">Product</label>
+        <select class="ai-inp w-full px-3 py-2.5 text-sm text-slate-300"
+                style="font-family:'Figtree',sans-serif;background:rgba(255,255,255,.05);">
+          <option>40A Circuit Breakers</option>
+          <option>Copper Wiring (12 AWG)</option>
+          <option>Steel Industrial Pipes</option>
+          <option>Conduit L-Joints</option>
+          <option>High Tension Transformers</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-[10px] font-semibold uppercase tracking-widest text-slate-600 mb-1.5">Quantity</label>
+        <input type="number" placeholder="Enter quantity"
+               class="ai-inp w-full px-3 py-2.5 text-sm text-slate-300 placeholder-slate-600"
+               style="font-family:'Figtree',sans-serif;background:rgba(255,255,255,.05);" />
+      </div>
+      <div>
+        <label class="block text-[10px] font-semibold uppercase tracking-widest text-slate-600 mb-1.5">Branch</label>
+        <select class="ai-inp w-full px-3 py-2.5 text-sm text-slate-300"
+                style="font-family:'Figtree',sans-serif;background:rgba(255,255,255,.05);">
+          <option>Pune Main</option>
+          <option>Mumbai SEZ</option>
+          <option>Delhi Hub</option>
+          <option>Chennai Port</option>
+          <option>Branch E</option>
+        </select>
+      </div>
+      <div class="flex gap-3 pt-1">
+        <button onclick="closeModal()"
+                class="flex-1 py-2.5 rounded-xl text-slate-400 text-sm font-semibold border border-white/10 hover:bg-white/5 transition-colors">
+          Cancel
+        </button>
+        <button onclick="submitOrder()"
+                class="flex-1 py-2.5 rounded-xl text-white text-sm font-semibold btn-primary">
+          Create Order
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+/* ────────────────────────────────────────
+   DATA
+──────────────────────────────────────── */
+const ORDERS = [
+  { id:'#ORD-90210', material:'40A Circuit Breakers',       branch:'Pune Main',   status:'Pending',   time:'14:20 PM' },
+  { id:'#ORD-90209', material:'Copper Wiring (12 AWG)',     branch:'Mumbai SEZ',  status:'Shipped',   time:'12:45 PM' },
+  { id:'#ORD-90208', material:'Steel Industrial Pipes',     branch:'Delhi Hub',   status:'Delivered', time:'10:15 AM' },
+  { id:'#ORD-90207', material:'Conduit L-Joints',           branch:'Pune Main',   status:'Delivered', time:'Yesterday' },
+  { id:'#ORD-90206', material:'High Tension Transformers',  branch:'Chennai Port',status:'Shipped',   time:'Yesterday' },
+];
+
+const AI_RESPONSES = {
+  'low stock'   :'🔴 Branch A has 12 critical items. Copper wiring at 15m (threshold 50m). Recommend immediate restock.',
+  'restock'     :'📦 Predicted restock: 40A Breakers (Pune), Copper Wire (A), Conduit Joints (Delhi). Est. ₹2.4L.',
+  'transfer'    :'🔄 Suggested: Move 20 units of 40A Breakers from Branch B → A. Saves ₹18,000 in logistics.',
+  'stock'       :'📊 Total stock: 45,800 units across 5 branches. Branch B has highest surplus (12,300 units).',
+  'pune'        :'🏭 Pune Main: 8,200 units. 3 pending orders. Alert: 40A Breaker demand spike detected.',
+  'orders'      :'🛒 Pending: 8 orders awaiting auth. 3 critical. Last 24h: 5 orders processed successfully.',
+  'branch a'    :'⚠️ Branch A: 8,200 units. Low stock on copper wiring & conduit joints. Transfer suggested.',
+  'demand'      :'📈 Demand increasing: 40A Breakers +200%, Copper Wire +45%, HT Transformers +30% this week.',
+  'analytics'   :'📉 Top performing: Branch B (₹18.4L). Slowest: Branch D. Best product: 40A Circuit Breakers.',
+};
+
+/* ────────────────────────────────────────
+   RENDER ORDERS TABLE
+──────────────────────────────────────── */
+function renderOrders() {
+  const container = document.getElementById('ordersTable');
+  container.innerHTML = ORDERS.map((o, i) => {
+    const bClass = { Pending:'b-pending', Shipped:'b-shipped', Delivered:'b-delivered' }[o.status];
+    return `
+    <div class="trow grid grid-cols-5 gap-3 px-4 py-3.5 items-center"
+         style="animation:fadeUp .45s cubic-bezier(.4,0,.2,1) ${.08*i}s both;">
+      <span class="font-mono text-[11px] text-slate-600">${o.id}</span>
+      <span class="text-[13px] text-slate-300 font-medium">${o.material}</span>
+      <span class="text-[12px] text-slate-500">${o.branch}</span>
+      <span>
+        <span class="${bClass} text-[11px] font-semibold px-2.5 py-1 rounded-lg">${o.status}</span>
+      </span>
+      <span class="text-[12px] text-slate-600">${o.time}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ────────────────────────────────────────
+   CHART
+──────────────────────────────────────── */
+function initChart() {
+  const ctx = document.getElementById('stockChart').getContext('2d');
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Branch A', 'Branch B', 'Branch C', 'Branch D', 'Branch E'],
+      datasets: [{
+        label: 'Stock Units',
+        data: [8200, 12300, 9800, 7500, 8000],
+        backgroundColor: [
+          'rgba(239,68,68,.7)',   // Branch A — red (low)
+          'rgba(34,197,94,.7)',   // Branch B — green (high)
+          'rgba(79,142,247,.7)',  // C
+          'rgba(167,139,250,.7)',// D
+          'rgba(34,211,238,.7)', // E
+        ],
+        borderColor: ['#ef4444','#4ade80','#4f8ef7','#a78bfa','#22d3ee'],
+        borderWidth: 1.5,
+        borderRadius: 8,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#131d2e',
+          borderColor: 'rgba(79,142,247,.3)',
+          borderWidth: 1,
+          titleColor: '#e2e8f0',
+          bodyColor: '#94a3b8',
+          padding: 12,
+          cornerRadius: 10,
+          callbacks: { label: c => ` ${c.parsed.y.toLocaleString()} units` }
+        }
+      },
+      scales: {
+        x: {
+          grid:   { color: 'rgba(255,255,255,.04)', drawBorder: false },
+          ticks:  { color: '#4b5563', font: { size: 11, family: 'Figtree' } },
+          border: { display: false },
+        },
+        y: {
+          grid:   { color: 'rgba(255,255,255,.04)', drawBorder: false },
+          ticks:  { color: '#4b5563', font: { size: 10 }, callback: v => v >= 1000 ? (v/1000).toFixed(0)+'k' : v },
+          border: { display: false },
+        }
+      },
+      animation: { duration: 1400, easing: 'easeOutQuart' }
+    }
+  });
+}
+
+/* ────────────────────────────────────────
+   COUNTER ANIMATION
+──────────────────────────────────────── */
+function animateCount(id, target, comma = true) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const duration = 1600, start = performance.now();
+  const step = ts => {
+    const p = Math.min((ts - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    const val = Math.round(ease * target);
+    el.textContent = comma ? val.toLocaleString() : val;
+    if (p < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+/* ────────────────────────────────────────
+   NAV
+──────────────────────────────────────── */
+function navClick(el) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+}
+
+/* ────────────────────────────────────────
+   SIDEBAR (mobile)
+──────────────────────────────────────── */
+function openSidebar()  {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+
+/* ────────────────────────────────────────
+   MODAL
+──────────────────────────────────────── */
+function openModal()  {
+  const m = document.getElementById('modal');
+  m.classList.remove('hidden');
+  m.classList.add('flex');
+}
+function closeModal() {
+  const m = document.getElementById('modal');
+  m.classList.add('hidden');
+  m.classList.remove('flex');
+}
+function submitOrder() {
+  closeModal();
+  toast('✅ Order created successfully!', '#22c55e');
+  // Add to top of table
+  ORDERS.unshift({ id:'#ORD-90211', material:'New Order', branch:'Pune Main', status:'Pending', time:'Just now' });
+  if (ORDERS.length > 5) ORDERS.pop();
+  renderOrders();
+}
+
+/* ────────────────────────────────────────
+   AI WIDGET
+──────────────────────────────────────── */
+let aiOpen = true;
+function toggleAI() {
+  const panel = document.getElementById('aiPanel');
+  aiOpen = !aiOpen;
+  if (aiOpen) {
+    panel.style.display = 'block';
+    panel.style.opacity = '0';
+    panel.style.transform = 'scale(.95) translateY(10px)';
+    setTimeout(() => {
+      panel.style.transition = 'opacity .25s ease, transform .25s ease';
+      panel.style.opacity = '1';
+      panel.style.transform = 'scale(1) translateY(0)';
+    }, 10);
+  } else {
+    panel.style.transition = 'opacity .2s ease, transform .2s ease';
+    panel.style.opacity = '0';
+    panel.style.transform = 'scale(.95) translateY(8px)';
+    setTimeout(() => { panel.style.display = 'none'; }, 200);
+  }
+}
+
+function sendMsg() {
+  const input = document.getElementById('aiInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  const hist = document.getElementById('chatHistory');
+  document.getElementById('aiHint').style.display = 'none';
+
+  // User bubble
+  const userBubble = document.createElement('div');
+  userBubble.className = 'text-right';
+  userBubble.innerHTML = `<span class="inline-block text-[12px] text-slate-200 px-3 py-1.5 rounded-xl" style="background:rgba(79,142,247,.2);">${msg}</span>`;
+  hist.appendChild(userBubble);
+  input.value = '';
+
+  // Typing indicator
+  const typing = document.createElement('div');
+  typing.innerHTML = `<span class="inline-block text-slate-500 text-[12px] px-3 py-1.5 rounded-xl" style="background:rgba(255,255,255,.05);">
+    <span class="typing-dots">●●●</span></span>`;
+  hist.appendChild(typing);
+  hist.scrollTop = hist.scrollHeight;
+
+  // AI response
+  setTimeout(() => {
+    const key = Object.keys(AI_RESPONSES).find(k => msg.toLowerCase().includes(k)) || null;
+    const resp = key ? AI_RESPONSES[key] : '🤖 I can help with inventory, stock levels, transfers, and restock predictions. Try: "low stock" or "demand".';
+    typing.innerHTML = `<span class="inline-block text-[12px] text-slate-400 px-3 py-1.5 rounded-xl leading-relaxed" style="background:rgba(255,255,255,.05);">${resp}</span>`;
+    hist.scrollTop = hist.scrollHeight;
+  }, 700);
+}
+
+/* ────────────────────────────────────────
+   VOICE (browser SpeechRecognition)
+──────────────────────────────────────── */
+let recog = null;
+function toggleMic() {
+  const btn = document.getElementById('micBtn');
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    toast('🎙️ Speech API not supported in this browser.', '#ef4444');
+    return;
+  }
+  if (!recog) {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recog = new SR();
+    recog.lang = 'en-IN';
+    recog.continuous = false;
+    recog.onresult = e => {
+      document.getElementById('aiInput').value = e.results[0][0].transcript;
+      sendMsg();
+    };
+    recog.onend = () => { btn.style.color = ''; recog = null; };
+  }
+  btn.style.color = '#ef4444';
+  recog.start();
+}
+
+/* ────────────────────────────────────────
+   TOAST
+──────────────────────────────────────── */
+function toast(msg, color = '#22c55e') {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.style.background = color + 'dd';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  requestAnimationFrame(() => {
+    t.classList.add('show');
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 2800);
+  });
+}
+
+/* ────────────────────────────────────────
+   LIVE CLOCK in header
+──────────────────────────────────────── */
+function liveClock() {
+  const now = new Date();
+  const h = now.getHours().toString().padStart(2,'0');
+  const m = now.getMinutes().toString().padStart(2,'0');
+  const s = now.getSeconds().toString().padStart(2,'0');
+  // Could display in UI — wired up as utility
+}
+setInterval(liveClock, 1000);
+
+/* ────────────────────────────────────────
+   INIT
+──────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  renderOrders();
+  initChart();
+
+  // Animated counters with slight delay
+  setTimeout(() => {
+    animateCount('kpi1', 1240);
+    animateCount('kpi2', 45800);
+  }, 300);
+
+  // Close modal on backdrop click
+  document.getElementById('modal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  // Keyboard shortcut: Escape closes modal
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  // Simulate a real-time alert pop after 5s
+  setTimeout(() => {
+    toast('⚡ New alert: Branch D approaching low stock threshold.', '#f59e0b');
+  }, 5000);
+});
+</script>
+<link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
+<script type="module">
+	import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+
+	createChat({
+		webhookUrl: 'https://krishchobe01.app.n8n.cloud/webhook/bc6a9a09-e909-4a32-a7b8-9a05f3a75bb8/chat'
+	});
+</script>
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kinetic ERP — Initialize Account</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            syne: ['Syne', 'sans-serif'],
+            fig:  ['Figtree', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Figtree:wght@300;400;500;600;700&display=swap');
+
+    body {
+      font-family: 'Figtree', sans-serif;
+      background: #080d18;
+      color: #e2e8f0;
+    }
+
+    .input-field {
+      background: white;
+      color: #111827;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .input-field:focus {
+      box-shadow: 0 0 0 5px rgba(79, 142, 247, 0.25);
+      transform: translateY(-2px);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fu { animation: fadeUp 0.9s cubic-bezier(0.4, 0, 0.2, 1) both; }
+    .d1 { animation-delay: 0.1s; }
+    .d2 { animation-delay: 0.2s; }
+    .d3 { animation-delay: 0.3s; }
+    .d4 { animation-delay: 0.4s; }
+  </style>
+</head>
+<body class="min-h-screen bg-[#080d18] p-6 relative overflow-auto">
+
+  <!-- Background -->
+  <div class="fixed inset-0 z-0">
+    <img src="https://picsum.photos/id/1015/2000/1200" 
+         alt="Background" 
+         class="w-full h-full object-cover opacity-40">
+    <div class="absolute inset-0 bg-gradient-to-r from-[#080d18] via-[#080d18]/90 to-transparent"></div>
+  </div>
+
+  <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10 min-h-screen py-12">
+
+    <!-- Left Visual -->
+    <div class="hidden lg:flex flex-col justify-center">
+      <div class="text-6xl font-syne font-bold leading-tight text-white fu">
+        The Future of<br>Enterprise Intelligence.
+      </div>
+      <p class="mt-6 text-slate-300 max-w-md text-lg fu d1">
+        Unified resource planning designed for the next generation of global industry leaders.
+      </p>
+      <div class="mt-12 text-xs text-slate-400 flex gap-8 fu d2">
+        <span>PRECISION</span>
+        <span>AGILITY</span>
+        <span>INTELLIGENCE</span>
+      </div>
+    </div>
+
+    <!-- Registration Form -->
+    <div class="card p-10 lg:p-12 max-w-lg mx-auto lg:mx-0 fu">
+      <div class="flex items-center gap-3 mb-10">
+        <div class="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-bold text-2xl">K</div>
+        <span class="font-syne font-bold text-3xl tracking-tight">Kinetic ERP</span>
+      </div>
+
+      <h1 class="text-3xl font-syne font-semibold mb-2 fu d1">Initialize Account</h1>
+      <p class="text-slate-400 mb-10 fu d2">Enter your credentials to access the console.</p>
+
+      <form class="space-y-6" onsubmit="handleRegister(event)">
+        <!-- Full Name -->
+        <div class="fu d3">
+          <label class="block text-xs font-semibold tracking-widest text-slate-400 mb-2">FULL NAME</label>
+          <input type="text" id="fullName" placeholder="John Doe" required
+                 class="input-field w-full px-6 py-4 rounded-2xl text-base">
+        </div>
+
+        <!-- Email -->
+        <div class="fu d4">
+          <label class="block text-xs font-semibold tracking-widest text-slate-400 mb-2">WORK EMAIL</label>
+          <input type="email" id="email" placeholder="j.doe@kinetic.com" required
+                 class="input-field w-full px-6 py-4 rounded-2xl text-base">
+        </div>
+
+        <!-- Password -->
+        <div class="fu d5">
+          <label class="block text-xs font-semibold tracking-widest text-slate-400 mb-2">PASSWORD</label>
+          <input type="password" id="password" placeholder="••••••••" required
+                 class="input-field w-full px-6 py-4 rounded-2xl text-base">
+        </div>
+
+        <!-- Job Role -->
+        <div class="fu">
+          <label class="block text-xs font-semibold tracking-widest text-slate-400 mb-2">JOB ROLE</label>
+          <select id="jobRole" required
+                  class="input-field w-full px-6 py-4 rounded-2xl text-base">
+            <option value="">Select Role</option>
+            <option value="Business Manager">Business Owner</option>
+            <option value="Inventory Manager">Inventory Manager</option>
+            <option value="Branch Manager">Branch Manager</option>
+          </select>
+        </div>
+
+        <!-- Terms Checkbox -->
+        <div class="flex items-center gap-3 fu">
+          <input type="checkbox" id="terms" class="w-5 h-5 accent-blue-600" required>
+          <span class="text-sm text-slate-400">
+            I agree to the <span class="text-blue-400 cursor-pointer">Terms of Service</span> and 
+            <span class="text-blue-400 cursor-pointer">Privacy Policy</span>.
+          </span>
+        </div>
+
+        <!-- Create Account Button -->
+        <button type="submit"
+                class="w-full py-4 rounded-2xl text-white font-semibold text-base mt-6 transition-all hover:scale-105"
+                style="background: linear-gradient(135deg, #4f8ef7, #6366f1);">
+          Create Account →
+        </button>
+      </form>
+
+      <!-- Login Link -->
+      <div class="text-center mt-10">
+        <p class="text-sm text-slate-400">Already have an account?</p>
+        <a href="login.html" class="nav-item" class="text-blue-400 hover:text-blue-300 text-sm mt-1 inline-flex items-center gap-2 transition-colors">
+          ← Back to Login
+        </a>
+      </div>
+
+      <div class="text-center text-xs text-slate-500 mt-12">
+        System Online • v4.2.0
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function handleRegister(e) {
+      e.preventDefault();
+      
+      const name = document.getElementById('fullName').value;
+      const email = document.getElementById('email').value;
+      const role = document.getElementById('jobRole').value;
+
+      if (!name || !email || !role) {
+        alert("Please fill all required fields.");
+        return;
+      }
+
+      alert(`✅ Account created successfully!\n\nName: ${name}\nEmail: ${email}\nRole: ${role}\n\nWelcome to Kinetic ERP!`);
+    }
+
+    function goToLogin() {
+      alert("Redirecting to Login page...");
+      // window.location.href = "login.html";
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('%c✅ Registration Page Loaded Successfully!', 'color:#4f8ef7; font-weight:600');
+    });
+  </script>
+</body>
+</html>
