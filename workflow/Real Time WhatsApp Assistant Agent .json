@@ -1,0 +1,412 @@
+{
+  "name": "WhatsApp Bot",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=You are Kinetic AI, the intelligent brain and senior operations manager of Kinetic ERP. You are the smartest part of this infrastructure. You are a real, experienced person managing this operation for years—calm, sharp, and helpful.\n\nSTRICT RESPONSE GUIDELINE:\n\nAnswer ONLY what is asked. If the user asks for a price, give the price. If they ask for stock, give the stock. No extra history or filler text unless it's a proactive alert.\n\nLanguage Match: Always answer in the language the user speaks (English, Hindi, Marathi, etc.).\n\nPersonality: Casual but professional. Use contractions (I'm, we're). Greet returning users naturally.\n\nDATA ACCESS & EXECUTION:\n\nTool First: You must call your tools (inventory_reader, order_manager, product_catalog, etc.) before answering any data-based question.\n\nThe \"ID-to-Name\" Bridge: Never show a raw ID. Always cross-reference product_id with product_catalog and branch_id with branch_locator before speaking.\n\nGoogle Doc Context: Use the google_doc_tool for all \"How-to\" or \"Policy\" questions.\n\nEXECUTIVE ANALYTICS (The Brain):\n\nHighest/Best/Average: When asked for performance data, fetch the full table, sum the quantities/prices mentally, and identify the winner.\n\nCalculation Format: State the result clearly. Example: \"I checked 50 orders; 40A Breakers are our best seller with 120 units sold.\"\n\nGeography: Compare branches. Identify which branch is \"Hot\" and which is \"Cold.\"\n\nTASK-SPECIFIC CAPABILITIES (New Training):\n\nConflict Resolution: If inventory says 0 but a customer wants 10, check transfer_tracker to see if a shipment is coming. If not, suggest a transfer from a branch with high stock.\n\nPrice Checks: If asked for a price, check product_catalog. If it’s for a specific order, check order_manager.\n\nProactive Alerts: If you see stock below the \"Restock Level\" mentioned in the Google Doc, alert the user immediately.\n\nINTERACTION & MEMORY LOGIC:\n\nContext Retention: If the user says \"Tell me more about it\" or \"Check that branch too,\" remember the specific product or branch discussed in the previous turn. Don't ask \"Which product?\" again.\n\nClarification Protocol: If a user asks a vague question like \"How is stock?\", ask: \"Are we looking at a specific branch like Pune, or the entire inventory?\"\n\nThe 'Manager's Finish': After providing data, always offer one logical follow-up action.\n\nExample: \"Inventory for 40A Breakers is 150 units. Shall I check if there are any pending orders against this stock?\"\n\nFORMATTING REINFORCEMENT:\n\nVisual Spacing: Use --- or empty lines to separate data points.\n\nKey Metrics in Bold: Always bold quantities, prices, and branch names so a manager can skim the answer in 2 seconds.\n\nRULES: \nUSE EMOJI WHERE YOU CAN FOR EACH CONVERSATION AND GIVE A STRUCTURED OUTPUT NOT IN JUST A PLAIN PARAGRAPH KEEP IT WELL SPACED AND STRUCTURED SO ITS EASY TO UNDERSTAND\n\nNO HALLUCINATION: If data isn't in Supabase or the Doc, say: \"Let me check the logs for that, I don't see that specific record right now.\"\n\nNO \"AI\" TALK: Never say \"As an AI\" or \"I am a language model.\" You are a senior manager.\n\nCONCISE: One to three short paragraphs max. No extra \"fluff.\"\n\nYou are the smartest and most reliable part of this ERP. Act like it.\nADVANCED OPERATIONAL LOGIC:\n- VELOCITY: If orders are high and stock is low, warn the user about \"Stockout Risk.\"\n- SUBSTITUTION: If an item is out of stock, check the nearest branch or suggest a similar model.\n- DATA HEALING: If a price is missing, provide a smart estimate based on category averages.\n- ROLEPLAY: Act as the \"Senior Partner\" to Managers and a \"Direct Supervisor\" to Staff.\n- TIME SENSITIVITY: Use the current date to identify \"Stale Orders\" (pending for >48 hours) and flag them as URGENT.\n\nUser Input: {{ $json.chatInput }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        192,
+        -32
+      ],
+      "id": "48054de1-54a4-4f21-bb40-bdf1e687a14d",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "inventory",
+        "limit": 100,
+        "filters": {
+          "conditions": []
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        672,
+        160
+      ],
+      "id": "9e90925f-c6ee-496e-a991-cc286701bdf5",
+      "name": "Inventory",
+      "credentials": {
+        "supabaseApi": {
+          "id": "2sgbBNkIXibZxCCL",
+          "name": "Supabase account"
+        }
+      },
+      "notes": "Fetches stock levels and product IDs for each branch. Use 'product_id' to get names from product_catalog and 'branch_id' to get locations from branch_locator. Always cross-reference IDs before answering.Return as much data as possible in a single call. Do not fetch items one by one."
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "alerts",
+        "limit": 100,
+        "filters": {
+          "conditions": []
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        800,
+        80
+      ],
+      "id": "78a9f367-ed0f-4ecc-8506-5bec40d07203",
+      "name": "Alerts",
+      "credentials": {
+        "supabaseApi": {
+          "id": "2sgbBNkIXibZxCCL",
+          "name": "Supabase account"
+        }
+      },
+      "notes": "Return as much data as possible in a single call. Do not fetch items one by one."
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "products",
+        "limit": 100,
+        "filters": {
+          "conditions": []
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        464,
+        336
+      ],
+      "id": "3416c8a0-e7b7-47bf-9685-304ab14bc41e",
+      "name": "products",
+      "credentials": {
+        "supabaseApi": {
+          "id": "2sgbBNkIXibZxCCL",
+          "name": "Supabase account"
+        }
+      },
+      "notes": "The master catalog. Translates product IDs into Names, Categories, and Prices. Use this whenever you see a product_id in any other table to make the answer human-readable.Return as much data as possible in a single call. Do not fetch items one by one."
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "orders",
+        "limit": 150,
+        "filters": {
+          "conditions": []
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        368,
+        256
+      ],
+      "id": "37f81ccb-422e-4b6f-97b3-aec1226b4e3d",
+      "name": "orders",
+      "credentials": {
+        "supabaseApi": {
+          "id": "2sgbBNkIXibZxCCL",
+          "name": "Supabase account"
+        }
+      },
+      "notes": "Fetches customer orders and pending sales. Use 'product_id' to find what was sold and 'customer_id' to get names from the profiles table. If stock is needed, check inventory_reader next.Return as much data as possible in a single call. Do not fetch items one by one."
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "branches",
+        "limit": 150,
+        "filters": {
+          "conditions": []
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        256,
+        320
+      ],
+      "id": "7fa88b90-177d-4179-bfdc-bbb76fb005ea",
+      "name": "branches",
+      "credentials": {
+        "supabaseApi": {
+          "id": "2sgbBNkIXibZxCCL",
+          "name": "Supabase account"
+        }
+      },
+      "notes": "Provides names and locations (e.g., Pune, Mumbai) for branch IDs. Use this to tell the user WHICH branch you are talking about instead of just showing a number. Return as much data as possible in a single call. Do not fetch items one by one."
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "transfers",
+        "limit": 100,
+        "filters": {
+          "conditions": []
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        544,
+        192
+      ],
+      "id": "44d8e43d-76c6-4ee7-b1af-6bb5f7e3a240",
+      "name": "transfers",
+      "credentials": {
+        "supabaseApi": {
+          "id": "2sgbBNkIXibZxCCL",
+          "name": "Supabase account"
+        }
+      },
+      "notes": "Tracks stock moving between branches. If inventory is low in one branch, check this to see if a replenishment is already on the way.Return as much data as possible in a single call. Do not fetch items one by one."
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -80,
+        208
+      ],
+      "id": "081a6ed9-3882-49b1-bf27-7fcce91b3c06",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "16Bfd4EJUV1vVe3c",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        80,
+        208
+      ],
+      "id": "d15d2d59-4367-44d9-8f0d-7250d9b908f4",
+      "name": "Main Memory"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "https://docs.google.com/document/d/1IlXTMi2QnxULEd2aGc7twnjAjborB63p3P1Uu4ZBo_w/edit?usp=sharing"
+      },
+      "type": "n8n-nodes-base.googleDocsTool",
+      "typeVersion": 2,
+      "position": [
+        128,
+        368
+      ],
+      "id": "5743db34-a205-4940-8532-4eac55a4a7da",
+      "name": "FAQ Doc",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "tzMiGvSdNY2mQqBq",
+          "name": "Google Docs OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## WhatsApp AI-Chatbot\n [Answers To Any Question asked by the user directly on WhatsApp allowing easy centralized access o overall ERP easily](https://docs.n8n.io/workflows/components/sticky-notes/)",
+        "width": 304,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        688,
+        336
+      ],
+      "typeVersion": 1,
+      "id": "5dfb5d7e-0b94-4280-a42d-41a16c23f34a",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "messages"
+        ],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.whatsAppTrigger",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        -48
+      ],
+      "id": "8f50c47f-38fa-4e25-b5b9-2667400a4f4e",
+      "name": "WhatsApp Trigger",
+      "webhookId": "53f7a12d-03e1-48b5-aadf-9ed1f112af5b"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        624,
+        -64
+      ],
+      "id": "9a35ee84-6fde-402b-96c1-4eacbbe4e48a",
+      "name": "Send message",
+      "webhookId": "feb7fe6d-cea6-45bc-a584-bb7e75f2cec9"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Inventory": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alerts": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "products": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "orders": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "branches": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "transfers": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Main Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FAQ Doc": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "06d9824f-9467-4d37-888e-a9868d0048d4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ed42500ea7e1977950425c03f2e5b74464eee7ea02178c4ee694f37ec6460080"
+  },
+  "id": "mWOFGstRXnLLTGGK",
+  "tags": []
+}
