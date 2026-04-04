@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory - Smart ERP</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { background: linear-gradient(135deg, rgba(8, 13, 24, 0.96), rgba(3, 7, 18, 0.98)), url('https://images.unsplash.com/photo-1555949963-aa79dcee981c?q=80&w=2670&auto=format&fit=crop') no-repeat center center fixed; background-size: cover; color: #f8fafc; font-family: 'Inter', sans-serif; }
+        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 1.25rem; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); }
+        .glass-nav { background: rgba(3, 7, 18, 0.85); backdrop-filter: blur(28px); border-right: 1px solid rgba(255, 255, 255, 0.05); }
+        .menu-item { display: flex; align-items: center; gap: 0.875rem; padding: 0.875rem 1.25rem; border-radius: 0.75rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); color: #94a3b8; font-weight: 500; font-size: 0.95rem; }
+        .menu-item:hover { background: rgba(255, 255, 255, 0.08); color: #fff; transform: translateX(4px); }
+        .menu-item.active { background: rgba(59, 130, 246, 0.2); color: #60a5fa; box-shadow: inset 2px 0 0 #3b82f6; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(12px); z-index: 50; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
+        .modal.active { display: flex; opacity: 1; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-up { animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        .p-content { padding: 2rem; } .hover-lift { transition: transform 0.3s ease; } .hover-lift:hover { transform: translateY(-3px); }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+    <aside class="w-72 glass-nav flex flex-col justify-between p-5 h-full z-10 shrink-0">
+        <div>
+            <div class="flex items-center gap-3 mb-10 px-4 mt-4 hover-lift">
+                <div class="p-2.5 bg-blue-600 rounded-xl shadow-[0_0_15px_rgba(37,99,235,0.5)]"><i data-lucide="zap" class="w-6 h-6 text-white"></i></div>
+                <h1 class="text-2xl font-bold tracking-tight text-white">Smart ERP</h1>
+            </div>
+            <nav class="space-y-1">
+                <a href="dashboard.html" class="menu-item"><i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard</a>
+                <a href="inventory.html" class="menu-item active"><i data-lucide="packages" class="w-5 h-5"></i> Inventory</a>
+                <a href="orders.html" class="menu-item"><i data-lucide="shopping-cart" class="w-5 h-5"></i> Orders</a>
+                <a href="transfers.html" class="menu-item"><i data-lucide="arrow-right-left" class="w-5 h-5"></i> Transfers</a>
+                <a href="alerts.html" class="menu-item"><i data-lucide="bell-ring" class="w-5 h-5"></i> Alerts</a>
+                <a href="financial.html" class="menu-item"><i data-lucide="landmark" class="w-5 h-5"></i> Financial</a>
+                <a href="analytics.html" class="menu-item"><i data-lucide="pie-chart" class="w-5 h-5"></i> Analytics</a>
+            </nav>
+        </div>
+        <div class="space-y-2">
+            <a href="settings.html" class="menu-item"><i data-lucide="settings" class="w-5 h-5"></i> Settings</a>
+            <div class="p-4 bg-white/5 rounded-2xl border border-white/5 flex items-center justify-between group backdrop-blur-xl">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-sm font-bold shadow-lg" id="user-initial">JD</div>
+                    <div>
+                        <p class="text-sm font-semibold text-white" id="user-name">Loading...</p>
+                        <p class="text-xs text-gray-400" id="user-role">...</p>
+                    </div>
+                </div>
+                <button onclick="window.ERP.logout()" class="p-2 hover:bg-white/10 rounded-xl transition text-gray-400 hover:text-red-400" title="Logout"><i data-lucide="log-out" class="w-4 h-4"></i></button>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-full overflow-y-auto w-full relative">
+        <header class="p-content flex justify-between items-end sticky top-0 z-20 pb-6" style="background: linear-gradient(180deg, rgba(8,13,24,0.95) 60%, rgba(8,13,24,0) 100%);">
+            <div class="animate-fade-up">
+                <h2 class="text-3xl font-bold text-white tracking-tight">Global Inventory</h2>
+                <p class="text-sm text-gray-400 mt-1">Manage network products and dynamically modify stock.</p>
+            </div>
+            <button onclick="openModal('addProductModal')" class="animate-fade-up bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl flex items-center gap-2 font-semibold transition shadow-[0_4px_20px_rgba(37,99,235,0.4)]">
+                <i data-lucide="plus" class="w-5 h-5"></i> Track New Asset
+            </button>
+        </header>
+
+        <div class="px-content pb-content z-10 w-full animate-fade-up" style="animation-delay: 0.1s;">
+            <div class="glass-card shadow-2xl overflow-hidden">
+                <div class="p-6 border-b border-white/5 flex gap-4 bg-white/[0.01]">
+                    <div class="relative w-full max-w-md">
+                        <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                        <input type="text" id="searchInput" placeholder="Search by SKU or Name..." class="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition shadow-inner">
+                    </div>
+                    <select id="branchFilter" class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-gray-200 focus:outline-none focus:border-blue-500 transition hover:bg-white/10 cursor-pointer shadow-inner">
+                        <option value="all">Network View (All Branches)</option>
+                    </select>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="text-sm font-semibold text-gray-300 border-b border-white/10 bg-white/[0.03]">
+                                <th class="p-5">SKU Code</th>
+                                <th class="p-5">Product Details</th>
+                                <th class="p-5">Location</th>
+                                <th class="p-5">Qty (Hand)</th>
+                                <th class="p-5">Status</th>
+                                <th class="p-5 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-body" class="text-sm divide-y divide-white/5">
+                            <!-- JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Product Modal -->
+    <div id="addProductModal" class="modal">
+        <div class="glass-card w-full max-w-lg p-8 border border-white/10 shadow-2xl relative" style="transform: scale(0.95); transition: transform 0.3s ease;" id="addModalContent">
+            <button onclick="closeModal('addProductModal')" class="absolute top-6 right-6 text-gray-400 hover:text-white transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+            <h3 class="text-2xl font-bold text-white mb-6">Track New Product</h3>
+            <form id="addProductForm" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1.5">Product Name</label>
+                    <input type="text" id="new_name" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div class="grid grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1.5">SKU</label>
+                        <input type="text" id="new_sku" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1.5">Category</label>
+                        <input type="text" id="new_category" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1.5">Target Initial Branch</label>
+                    <select id="new_branch" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 cursor-pointer"></select>
+                </div>
+                <div class="grid grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1.5">Unit Price (₹)</label>
+                        <input type="number" id="new_price" required min="1" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1.5">Initial Qty</label>
+                        <input type="number" id="new_qty" required min="0" value="10" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 mt-8 pt-6 border-t border-white/10">
+                    <button type="submit" class="px-6 py-3 rounded-xl text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow-[0_4px_14px_rgba(37,99,235,0.4)] transition">Add to Inventory</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Product Modal -->
+    <div id="editProductModal" class="modal">
+        <div class="glass-card w-full max-w-md p-8 border border-white/10 shadow-2xl relative" style="transform: scale(0.95); transition: transform 0.3s ease;" id="editModalContent">
+            <button onclick="closeModal('editProductModal')" class="absolute top-6 right-6 text-gray-400 hover:text-white transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+            <h3 class="text-2xl font-bold text-white mb-6">Modify Inventory</h3>
+            <form id="editProductForm" class="space-y-5">
+                <input type="hidden" id="edit_inv_id">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1.5">Current Stock Level</label>
+                    <input type="number" id="edit_qty" required min="0" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1.5">Location (Branch)</label>
+                    <select id="edit_branch" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500 cursor-pointer"></select>
+                </div>
+                <div class="flex justify-end gap-3 mt-8 pt-6 border-t border-white/10">
+                    <button type="submit" class="w-full px-6 py-3 rounded-xl text-sm font-semibold bg-purple-600 hover:bg-purple-500 text-white shadow-[0_4px_14px_rgba(168,85,247,0.4)] transition">Commit Save System-Wide</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="shared.js"></script>
+    <script>
+        window.ERP.checkAuth();
+        lucide.createIcons();
+
+        const user = window.ERP.data.currentUser;
+        if(user) {
+            document.getElementById('user-name').innerText = user.fullName;
+            document.getElementById('user-role').innerText = user.role;
+            document.getElementById('user-initial').innerText = user.fullName.charAt(0).toUpperCase();
+        }
+
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            modal.classList.add('active');
+            setTimeout(() => {
+                document.getElementById(id.replace('Modal', 'ModalContent')).style.transform = 'scale(1)';
+            }, 10);
+        }
+
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            document.getElementById(id.replace('Modal', 'ModalContent')).style.transform = 'scale(0.95)';
+            setTimeout(() => { modal.classList.remove('active'); }, 200);
+        }
+
+        window.openEdit = function(invId, qty, branchId) {
+            document.getElementById('edit_inv_id').value = invId;
+            document.getElementById('edit_qty').value = qty;
+            document.getElementById('edit_branch').value = branchId;
+            openModal('editProductModal');
+        }
+
+        window.deleteAsset = function(invId) {
+            if(confirm("Are you sure you want to completely drop this stock record?")) {
+                window.ERP.deleteInventory(invId);
+                renderInventory();
+                alert("Stock dropped correctly.");
+            }
+        }
+
+        function renderInventory() {
+            const table = document.getElementById('inventory-body');
+            const data = window.ERP.getInventoryDetails();
+            const filterTarget = document.getElementById('branchFilter').value;
+            const searchTarget = document.getElementById('searchInput').value.toLowerCase();
+
+            table.innerHTML = '';
+
+            data.forEach((item, index) => {
+                if(filterTarget !== 'all' && item.branch_id.toString() !== filterTarget) return;
+                if(searchTarget && !item.product_name.toLowerCase().includes(searchTarget) && !item.sku.toLowerCase().includes(searchTarget)) return;
+
+                let statusHtml = '';
+                if(item.quantity < item.min_threshold) {
+                    statusHtml = `<span class="px-3 py-1.5 rounded-full text-xs font-bold border border-red-500/30 text-red-400 bg-red-500/10 flex items-center gap-1.5 w-max shadow-[0_0_10px_rgba(239,68,68,0.1)]"><div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div> Low Stock</span>`;
+                } else if(item.quantity > item.max_threshold) {
+                    statusHtml = `<span class="px-3 py-1.5 rounded-full text-xs font-bold border border-yellow-500/30 text-yellow-400 bg-yellow-500/10 flex items-center gap-1.5 w-max"><div class="w-2 h-2 rounded-full bg-yellow-500"></div> Overstock</span>`;
+                } else {
+                    statusHtml = `<span class="px-3 py-1.5 rounded-full text-xs font-bold border border-green-500/30 text-green-400 bg-green-500/10 flex items-center gap-1.5 w-max"><div class="w-2 h-2 rounded-full bg-green-500"></div> Optimal</span>`;
+                }
+
+                table.innerHTML += `
+                    <tr class="hover:bg-white/5 transition group animate-fade-up" style="animation-delay: ${index * 0.05}s">
+                        <td class="p-5 text-gray-200 font-semibold tracking-wider font-mono">${item.sku}</td>
+                        <td class="p-5">
+                            <div class="font-bold text-white group-hover:text-blue-400 transition">${item.product_name}</div>
+                            <div class="text-xs text-gray-400 mt-1">${item.category} • ₹${item.unit_price} / unit</div>
+                        </td>
+                        <td class="p-5 text-gray-300 flex items-center gap-2 h-full font-medium"><i data-lucide="map-pin" class="w-4 h-4 text-blue-400"></i> ${item.branch_name}</td>
+                        <td class="p-5 text-white font-bold text-xl">${item.quantity}</td>
+                        <td class="p-5">${statusHtml}</td>
+                        <td class="p-5 text-right flex justify-end gap-2">
+                            <button onclick="openEdit(${item.id}, ${item.quantity}, ${item.branch_id})" class="p-2 border border-white/10 hover:border-blue-500/50 bg-white/5 hover:bg-blue-500/10 text-gray-300 hover:text-blue-400 rounded-lg transition" title="Edit Inventory"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                            <button onclick="deleteAsset(${item.id})" class="p-2 border border-white/10 hover:border-red-500/50 bg-white/5 hover:bg-red-500/10 text-gray-300 hover:text-red-400 rounded-lg transition" title="Delete Asset Record"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+            lucide.createIcons();
+        }
+
+        // Setup dropdowns
+        function setupDropdowns() {
+            const bFilter = document.getElementById('branchFilter');
+            const bSelect = document.getElementById('new_branch');
+            const eSelect = document.getElementById('edit_branch');
+            
+            bFilter.innerHTML = '<option value="all">Network View (All Branches)</option>';
+            bSelect.innerHTML = '';
+            eSelect.innerHTML = '';
+
+            window.ERP.data.branches.forEach(b => {
+                bFilter.innerHTML += `<option value="${b.id}">${b.name}</option>`;
+                bSelect.innerHTML += `<option value="${b.id}">${b.name}</option>`;
+                eSelect.innerHTML += `<option value="${b.id}">${b.name}</option>`;
+            });
+        }
+
+        setupDropdowns();
+
+        document.getElementById('branchFilter').addEventListener('change', renderInventory);
+        document.getElementById('searchInput').addEventListener('input', renderInventory);
+
+        document.getElementById('addProductForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newProd = {
+                name: document.getElementById('new_name').value,
+                sku: document.getElementById('new_sku').value,
+                category: document.getElementById('new_category').value,
+                unit_price: parseFloat(document.getElementById('new_price').value),
+                initialQuantity: parseInt(document.getElementById('new_qty').value)
+            };
+            const targetBranchId = parseInt(document.getElementById('new_branch').value);
+            
+            window.ERP.addProduct(newProd, targetBranchId);
+            closeModal('addProductModal');
+            e.target.reset();
+            renderInventory(); 
+            window.ERP.checkAlerts();
+            alert("New asset tracked to active memory.");
+        });
+
+        document.getElementById('editProductForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const invId = parseInt(document.getElementById('edit_inv_id').value);
+            const newQty = document.getElementById('edit_qty').value;
+            const newBranch = document.getElementById('edit_branch').value;
+            
+            if(window.ERP.editInventory(invId, newQty, newBranch)) {
+                closeModal('editProductModal');
+                renderInventory();
+                alert("Inventory changes saved system-wide.");
+            }
+        });
+
+        renderInventory();
+    </script>
+    <link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
+    <script type="module">
+        import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+        createChat({ webhookUrl: 'https://krishchobe01.app.n8n.cloud/webhook/bc6a9a09-e909-4a32-a7b8-9a05f3a75bb8/chat' });
+    </script>
+</body>
+</html>

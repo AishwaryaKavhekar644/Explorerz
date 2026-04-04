@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Smart ERP</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { background: linear-gradient(135deg, rgba(8, 13, 24, 0.96), rgba(3, 7, 18, 0.98)), url('https://images.unsplash.com/photo-1555949963-aa79dcee981c?q=80&w=2670&auto=format&fit=crop') no-repeat center center fixed; background-size: cover; color: #f8fafc; font-family: 'Inter', sans-serif; }
+        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 1.25rem; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); }
+        .glass-nav { background: rgba(3, 7, 18, 0.85); backdrop-filter: blur(28px); border-right: 1px solid rgba(255, 255, 255, 0.05); }
+        .menu-item { display: flex; align-items: center; gap: 0.875rem; padding: 0.875rem 1.25rem; border-radius: 0.75rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); color: #94a3b8; font-weight: 500; font-size: 0.95rem; }
+        .menu-item:hover { background: rgba(255, 255, 255, 0.08); color: #fff; transform: translateX(4px); }
+        .menu-item.active { background: rgba(59, 130, 246, 0.2); color: #60a5fa; box-shadow: inset 2px 0 0 #3b82f6; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-up { animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        .p-content { padding: 2rem; } .hover-lift { transition: transform 0.3s ease; } .hover-lift:hover { transform: translateY(-3px); }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+    <aside class="w-72 glass-nav flex flex-col justify-between p-5 h-full z-10 shrink-0">
+        <div>
+            <div class="flex items-center gap-3 mb-10 px-4 mt-4 hover-lift">
+                <div class="p-2.5 bg-blue-600 rounded-xl shadow-[0_0_15px_rgba(37,99,235,0.5)]"><i data-lucide="zap" class="w-6 h-6 text-white"></i></div>
+                <h1 class="text-2xl font-bold tracking-tight text-white">Smart ERP</h1>
+            </div>
+            <nav class="space-y-1">
+                <a href="dashboard.html" class="menu-item"><i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard</a>
+                <a href="inventory.html" class="menu-item"><i data-lucide="packages" class="w-5 h-5"></i> Inventory</a>
+                <a href="orders.html" class="menu-item"><i data-lucide="shopping-cart" class="w-5 h-5"></i> Orders</a>
+                <a href="transfers.html" class="menu-item"><i data-lucide="arrow-right-left" class="w-5 h-5"></i> Transfers</a>
+                <a href="alerts.html" class="menu-item"><i data-lucide="bell-ring" class="w-5 h-5"></i> Alerts</a>
+                <a href="financial.html" class="menu-item"><i data-lucide="landmark" class="w-5 h-5"></i> Financial</a>
+                <a href="analytics.html" class="menu-item"><i data-lucide="pie-chart" class="w-5 h-5"></i> Analytics</a>
+            </nav>
+        </div>
+        <div class="space-y-2">
+            <a href="settings.html" class="menu-item active"><i data-lucide="settings" class="w-5 h-5"></i> Settings</a>
+            <div class="p-4 bg-white/5 rounded-2xl border border-white/5 flex items-center justify-between group backdrop-blur-xl">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-sm font-bold shadow-lg" id="user-initial">JD</div>
+                    <div>
+                        <p class="text-sm font-semibold text-white" id="user-name">Loading...</p>
+                        <p class="text-xs text-gray-400" id="user-role">...</p>
+                    </div>
+                </div>
+                <button onclick="window.ERP.logout()" class="p-2 hover:bg-white/10 rounded-xl transition text-gray-400 hover:text-red-400" title="Logout"><i data-lucide="log-out" class="w-4 h-4"></i></button>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-full overflow-y-auto w-full relative">
+        <header class="p-content flex justify-between items-end sticky top-0 z-20 pb-6" style="background: linear-gradient(180deg, rgba(8,13,24,0.95) 60%, rgba(8,13,24,0) 100%);">
+            <div class="animate-fade-up">
+                <h2 class="text-3xl font-bold text-white tracking-tight">Account Parameters</h2>
+                <p class="text-gray-400 mt-1">Manage operational credentials and network topology.</p>
+            </div>
+        </header>
+
+        <div class="px-content pb-content z-10 w-full max-w-4xl space-y-8">
+            
+            <div class="glass-card p-10 animate-fade-up shadow-2xl">
+                <h3 class="text-2xl font-bold text-white mb-8 border-b border-white/10 pb-4">Personal Configuration</h3>
+                <form id="settings-form" class="space-y-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-300 mb-2">Display Name</label>
+                            <input type="text" id="set_name" required class="w-full bg-white/[0.02] border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-blue-500 transition shadow-inner">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-300 mb-2">Primary Protocol (Email)</label>
+                            <input type="email" id="set_email" required class="w-full bg-white/[0.02] border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-blue-500 transition shadow-inner">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-300 mb-2">Direct Contact (Phone)</label>
+                            <input type="text" id="set_phone" required class="w-full bg-white/[0.02] border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-blue-500 transition shadow-inner">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-300 mb-2">Global System Role</label>
+                            <select id="set_role" required class="w-full bg-white/[0.02] border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-blue-500 transition shadow-inner appearance-none cursor-pointer">
+                                <option value="Owner" class="bg-gray-900">Owner / Director</option>
+                                <option value="Branch Manager" class="bg-gray-900">Branch Operations Manager</option>
+                                <option value="Inventory Manager" class="bg-gray-900">Logistics Coordinator</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="pt-6 flex justify-end">
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-8 py-4 rounded-xl transition shadow-[0_4px_25px_0_rgba(37,99,235,0.5)]">Synchronize Identity Updates</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="glass-card p-10 animate-fade-up shadow-2xl" style="animation-delay: 0.1s;">
+                <h3 class="text-2xl font-bold text-white mb-8 border-b border-white/10 pb-4">Branch Management</h3>
+                <div class="mb-8">
+                    <form id="add-branch-form" class="flex gap-4 items-end">
+                        <div class="flex-1">
+                            <label class="block text-sm font-semibold text-gray-400 mb-2">Branch Name</label>
+                            <input type="text" id="br_name" required class="w-full bg-white/[0.02] border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-blue-500 shadow-inner">
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-sm font-semibold text-gray-400 mb-2">City / Location</label>
+                            <input type="text" id="br_loc" required class="w-full bg-white/[0.02] border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-blue-500 shadow-inner">
+                        </div>
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-8 py-4 rounded-xl transition shadow-[0_4px_25px_0_rgba(37,99,235,0.5)]">Add Remote Hub</button>
+                    </form>
+                </div>
+
+                <div class="bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-white/5 border-b border-white/10">
+                            <tr>
+                                <th class="p-4 text-gray-300 font-semibold">Hub Designation</th>
+                                <th class="p-4 text-gray-300 font-semibold">Coordinates</th>
+                                <th class="p-4 text-right text-gray-300 font-semibold">Secure Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="branches-body" class="divide-y divide-white/5">
+                            <!-- JS populated -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="shared.js"></script>
+    <script>
+        window.ERP.checkAuth();
+        lucide.createIcons();
+        
+        function loadSettings() {
+            const user = window.ERP.data.currentUser;
+            if(user) {
+                document.getElementById('user-name').innerText = user.fullName;
+                document.getElementById('user-role').innerText = user.role;
+                document.getElementById('user-initial').innerText = user.fullName.charAt(0).toUpperCase();
+
+                document.getElementById('set_name').value = user.fullName;
+                document.getElementById('set_email').value = user.email;
+                document.getElementById('set_phone').value = user.phone || '';
+                document.getElementById('set_role').value = user.role;
+            }
+        }
+
+        function renderBranches() {
+            const tbody = document.getElementById('branches-body');
+            tbody.innerHTML = '';
+            window.ERP.data.branches.forEach(b => {
+                tbody.innerHTML += `
+                <tr class="hover:bg-white/5 transition">
+                    <td class="p-4 text-white font-semibold flex items-center gap-2"><i data-lucide="server" class="w-4 h-4 text-blue-400"></i> ${b.name}</td>
+                    <td class="p-4 text-gray-300">${b.location}</td>
+                    <td class="p-4 text-right">
+                        <button onclick="deleteBranch(${b.id})" class="px-4 py-2 border border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500 rounded-lg transition text-sm font-semibold">Wipe Data & Drop Hub</button>
+                    </td>
+                </tr>
+                `;
+            });
+            lucide.createIcons();
+        }
+
+        document.getElementById('add-branch-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('br_name').value;
+            const loc = document.getElementById('br_loc').value;
+            window.ERP.addBranch(name, loc);
+            e.target.reset();
+            renderBranches();
+        });
+
+        window.deleteBranch = function(id) {
+            if(confirm("CRITICAL WARNING: This will cascade and delete all inventory, orders, and transfers assigned to this hub forever. Proceed?")) {
+                window.ERP.deleteBranch(id);
+                renderBranches();
+            }
+        };
+
+        document.getElementById('settings-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('set_name').value;
+            const email = document.getElementById('set_email').value;
+            const phone = document.getElementById('set_phone').value;
+            const role = document.getElementById('set_role').value;
+
+            if(window.ERP.updateProfile(name, email, role, phone)) {
+                alert('Success! Your operational identity has been updated across the network.');
+                loadSettings();
+            } else {
+                alert('An error occurred during synchronization.');
+            }
+        });
+
+        loadSettings();
+        renderBranches();
+    </script>
+    <link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
+    <script type="module">
+        import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+        createChat({ webhookUrl: 'https://krishchobe01.app.n8n.cloud/webhook/bc6a9a09-e909-4a32-a7b8-9a05f3a75bb8/chat' });
+    </script>
+</body>
+</html>
